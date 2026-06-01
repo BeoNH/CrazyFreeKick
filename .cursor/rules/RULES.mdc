@@ -1,0 +1,86 @@
+---
+description: Global rules for Fliplearn game project — always apply
+globs: **/*.ts
+alwaysApply: true
+---
+
+# Project Rules (Cocos Creator 3.x.x / TypeScript)
+
+## Engine & Language
+- Engine: **Cocos Creator 3.8.8**
+- Language: **TypeScript** (strict mode, no `any`)
+- Game type: Casual / Mini-game
+
+---
+
+## Code Style
+
+### Naming Convention
+| Loại | Convention | Ví dụ |
+|---|---|---|
+| Class | PascalCase | `GameManager`, `CardView` |
+| Function | camelCase | `flipCard()`, `checkMatch()` |
+| Constant | UPPER_CASE | `MAX_CARDS`, `FLIP_DELAY_MS` |
+| Event | UPPER_CASE string | `"ON_CARD_MATCHED"` |
+| Interface | PascalCase + prefix I | `ICardData`, `IGameConfig` |
+| Enum | PascalCase | `GameState`, `CardType` |
+
+### File Structure
+- **1 class / 1 file** — không gộp nhiều class vào cùng file
+- Không viết logic trong UI component — UI chỉ render và dispatch event
+- Không gọi API trực tiếp trong UI component
+- Tách function nếu thân hàm > 30 dòng
+
+---
+
+## Architecture Pattern
+
+### Manager Pattern
+Mọi logic nghiệp vụ đặt trong `/managers`:
+```
+managers/
+  GameManager.ts       ← khởi tạo session, điều phối state
+  UIManager.ts         ← quản lý màn hình/panel
+  NetworkManager.ts    ← gọi API, xử lý response
+  ScoreManager.ts      ← tính điểm, leaderboard
+  CardManager.ts       ← quản lý bộ thẻ, matching logic
+  ResourceManager.ts   ← load prefab/asset
+```
+
+### Event-Driven (BroadcastReceiver)
+- Giao tiếp giữa các system thông qua event, không gọi trực tiếp
+- Dùng `EventManager` hoặc `cc.director` để emit/listen
+- Đặt tên event trong file `GameEvents.ts` dạng UPPER_CASE constant
+
+---
+
+## Cocos Creator Rules
+
+- **Không dùng `node.find()`** trong `update()` — gây tốn kém mỗi frame
+- **Cache node reference** trong `onLoad()` hoặc `start()`
+- **Prefab phải load qua `ResourceManager`**, không load trực tiếp trong component
+- Không dùng `console.log` — luôn dùng `Logger.ts`
+
+---
+
+## AI/Cursor Rules
+
+- Không tạo file mới nếu chưa được yêu cầu rõ ràng
+- Luôn **reuse** code đã có trong `/managers` trước khi viết mới
+- Không viết lại logic đã tồn tại
+- Không dùng `any` trong TypeScript — dùng type/interface cụ thể
+- Luôn log bằng `Logger.ts`, không dùng `console.log`
+- Khi sửa file, chỉ sửa phần được yêu cầu, không refactor toàn bộ file
+
+---
+
+## Logging
+
+```typescript
+// Đúng
+Logger.info('[CardManager] Card flipped', cardId);
+Logger.error('[NetworkManager] API failed', error);
+
+// Sai
+console.log('card flipped');
+```

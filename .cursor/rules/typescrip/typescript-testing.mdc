@@ -1,0 +1,17 @@
+---
+description: "TypeScript testing extending common rules"
+globs: ["**/*.ts", "**/*.tsx", "**/*.js", "**/*.jsx"]
+alwaysApply: false
+---
+# TypeScript/JavaScript Testing
+
+> Extends: common/coding-style.mdc, common/patterns.mdc, common/testing.mdc
+> Local rules override common rules when conflicting.
+
+## E2E Testing
+
+Use **Playwright** as the E2E testing framework for critical user flows.
+
+## Agent Support
+
+- **e2e-runner** - Playwright E2E testing specialist

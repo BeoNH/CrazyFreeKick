@@ -1,0 +1,172 @@
+---
+description: API spec và network rules — áp dụng khi làm việc với NetworkManager hoặc API calls
+globs: managers/NetworkManager.ts
+alwaysApply: false
+---
+
+# API Spec & Network Rules
+
+## Nguyên tắc
+
+- **Mọi API call phải đi qua `NetworkManager`** — không gọi `fetch` trực tiếp trong component hay game manager khác
+- Không expose raw response ra ngoài — parse và return typed object
+- Luôn handle error — không để promise reject âm thầm
+
+---
+
+## Endpoints
+
+### POST `/api/saveScore`
+
+Gọi khi game session kết thúc (user hoàn thành hoặc timeout).
+
+**Request**
+```typescript
+interface ISaveScoreRequest {
+  score: number;       // điểm đạt được trong lần chơi này
+  time: number;        // thời gian chơi (giây)
+  topicId: string;     // id chủ đề đã chơi
+}
+```
+
+**Response**
+```typescript
+interface ISaveScoreResponse {
+  success: boolean;
+  newBestScore: boolean;   // true nếu điểm này cao hơn best trước đó
+  currentBest: number;     // best score hiện tại của chủ đề
+}
+```
+
+**Timing**: Gọi ngay sau khi game session kết thúc, trước khi hiển thị ResultPanel.
+
+---
+
+### GET `/api/leaderboard` *(nếu có)*
+
+**Response**
+```typescript
+interface ILeaderboardEntry {
+  rank: number;
+  playerName: string;
+  totalScore: number;    // tổng điểm cao nhất các chủ đề
+  totalTime: number;     // tổng thời gian (dùng để break tie)
+}
+
+type ILeaderboardResponse = ILeaderboardEntry[];
+```
+
+**Quy tắc sort phía server:**
+1. `totalScore` DESC
+2. `totalTime` ASC (nếu bằng score)
+
+---
+
+### GET `/api/topics` *(nếu có)*
+
+**Response**
+```typescript
+interface ITopic {
+  topicId: string;
+  name: string;
+  description: string;
+  cardPairs: ICardPair[];
+  levels: ILevelConfig[];
+}
+
+interface ICardPair {
+  pairId: string;
+  cardA: ICardData;
+  cardB: ICardData;
+}
+```
+
+---
+
+## NetworkManager Implementation Template
+
+```typescript
+export class NetworkManager {
+  private static instance: NetworkManager | null = null;
+  private readonly BASE_URL = 'https://your-api.example.com';
+
+  static get instance(): NetworkManager {
+    if (!NetworkManager.instance) {
+      NetworkManager.instance = new NetworkManager();
+    }
+    return NetworkManager.instance;
+  }
+
+  async saveScore(payload: ISaveScoreRequest): Promise<ISaveScoreResponse> {
+    try {
+      const response = await fetch(`${this.BASE_URL}/api/saveScore`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+
+      const data: ISaveScoreResponse = await response.json();
+      Logger.info('[NetworkManager]', 'saveScore success', data);
+      return data;
+
+    } catch (error) {
+      Logger.error('[NetworkManager]', 'saveScore failed', error);
+      throw error;   // re-throw để caller xử lý UI feedback
+    }
+  }
+
+  async getLeaderboard(): Promise<ILeaderboardEntry[]> {
+    try {
+      const response = await fetch(`${this.BASE_URL}/api/leaderboard`);
+      if (!response.ok) throw new Error(`HTTP ${response.status}`);
+      return await response.json() as ILeaderboardEntry[];
+    } catch (error) {
+      Logger.error('[NetworkManager]', 'getLeaderboard failed', error);
+      throw error;
+    }
+  }
+}
+```
+
+---
+
+## Luồng gọi API trong Game
+
+```
+[GameManager.endSession()]
+    │
+    ├─ ScoreManager.calcFinalScore() → score, time
+    │
+    ├─ NetworkManager.saveScore({ score, time, topicId })
+    │       ├─ success → UIManager.showResult(data)
+    │       └─ error   → UIManager.showResult(data) + show offline notice
+    │
+    └─ ScoreManager.updateLocalBest(topicId, score) ← luôn update local
+```
+
+---
+
+## Error Handling Policy
+
+| Trường hợp | Hành động |
+|---|---|
+| Network timeout | Retry 1 lần, nếu fail → hiển thị offline mode |
+| HTTP 4xx | Log error, hiển thị thông báo user-friendly |
+| HTTP 5xx | Log error, retry sau 2 giây |
+| Parse error | Log error, dùng fallback data |
+
+```typescript
+// Không để UI bị block khi API fail
+// Luôn hiển thị màn hình kết quả dù API lỗi
+try {
+  await NetworkManager.instance.saveScore(payload);
+} catch {
+  Logger.warn('[GameManager]', 'Score not saved — offline mode');
+} finally {
+  UIManager.instance.showScreen(ScreenName.RESULT);
+}
+```
