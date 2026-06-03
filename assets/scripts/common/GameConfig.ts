@@ -16,16 +16,9 @@ export const MATRIX_X_END   = 1040;
 export const MATRIX_Y_START = 235;
 export const MATRIX_Y_END   = 430;
 
-// Tỉ lệ thủ môn bắt được bóng theo từng vùng cột
-export const LOW_PERCENT  = 5;
-export const MED_PERCENT  = 50;
-export const HIGH_PERCENT = 90;
-
 // Số lượng
 export const NUM_LEVEL = 6;
 export const NUM_KICK  = 5;
-export const NUM_CROWD = 31;
-export const NUM_SAVE  = 8;   // số action của thủ môn (không kể OUT)
 
 // Vật lý bóng
 export const STEP_SPEED_BALL = 2.4;   // flightStep tăng mỗi frame
@@ -40,8 +33,8 @@ export const PLAYER_WIDTH  = 160;
 export const PLAYER_HEIGHT = 239;
 export const GOALKEEPER_WIDTH  = 91;
 export const GOALKEEPER_HEIGHT = 122;
-export const WALL_WIDTH  = 119;
-export const WALL_HEIGHT = 179;
+export const WALL_WIDTH  = 92;
+export const WALL_HEIGHT = 160;
 export const BALL_WIDTH  = 60;
 export const BALL_HEIGHT = 60;
 export const GOAL_WIDTH  = 390;
@@ -51,8 +44,6 @@ export const GOAL_HEIGHT = 145;
 export const GOALKEEPER_POS = { x: 0, y: -70 };
 
 // Tốc độ thanh chỉ báo ban đầu (ms cho 1 lần đi hết thanh)
-// Giá trị này được truyền vào qua game config bên ngoài file gốc.
-// Đặt mặc định hợp lý, UIManager/GameManager có thể override.
 export const SHOT_INDICATOR_SPEED_DEFAULT  = 1800;  // ms
 export const SHOT_INDICATOR_SPEED_DECREASE = 200;   // giảm mỗi level
 
@@ -60,14 +51,44 @@ export const SHOT_INDICATOR_SPEED_DECREASE = 200;   // giảm mỗi level
 export const BONUS_START    = 1000;
 export const BONUS_DECREASE = 3;    // giảm mỗi frame khi đang chờ input
 
-// Vị trí thanh chỉ báo (tọa độ CreateJS gốc — dùng làm tham chiếu)
-export const HORIZONTAL_BAR_POS = { x: 104, y: 272 };
-export const VERTICAL_BAR_POS   = { x: -636, y: -39 };
-
 // Khoảng cách các slot wall (pixel)
 export const WALL_SLOT_OFFSET = WALL_WIDTH - 40;  // 79px mỗi người
 
+// ────────────────────────────────────────────────
+// Interfaces
+// ────────────────────────────────────────────────
+
+export interface ILevelInfo {
+    goalToScore: number;
+    kickLeft:    number;
+}
+
+export interface IPosition {
+    x: number;
+    y: number;
+}
+
+export interface IWallData {
+    x:   number;
+    y:   number;
+    num: number;   // số người trong tường (0 = không có)
+}
+
+export interface IKeeperActionInfo {
+    action: string;
+    width:  number;
+    height: number;
+    pos:    { x: number; y: number };
+    frames: number;
+}
+
+
+// ────────────────────────────────────────────────
+// Enum
+// ────────────────────────────────────────────────
+
 // Enum hành động thủ môn
+export const NUM_SAVE  = 8;   // số action của thủ môn (không kể OUT)
 export enum KeeperAction {
     CENTER      = 0,
     CENTER_HIGH = 1,
@@ -108,15 +129,6 @@ export const TEAM_NAMES: Record<TeamIndex, string> = {
     [TeamIndex.FRANCE]:    'FRANCE',
 };
 
-// Thông tin animation của từng hành động thủ môn
-export interface IKeeperActionInfo {
-    action: string;
-    width:  number;
-    height: number;
-    pos:    { x: number; y: number };  // Cocos coords
-    frames: number;
-}
-
 export const KEEPER_ACTION_INFO: Record<KeeperAction, IKeeperActionInfo | null> = {
     [KeeperAction.CENTER]:      { action:'center',      width:91,  height:122, pos:{x:0,   y:-100}, frames:4  },
     [KeeperAction.CENTER_HIGH]: { action:'center_high', width:106, height:163, pos:{x:0,   y:-100}, frames:9  },
@@ -143,28 +155,3 @@ export const SOUND_KEYS = {
     GAME_OVER:     'game_over',
     STOP_INDICATOR:'stop_indicator',
 } as const;
-
-
-// ── Kick target grid — 9 cột × 4 hàng (Cocos coords) ────────
-// [col][row] → { x, y }
-// Tính từ: CJS x = (660/9)*col + 385, CJS y = (195/4)*row + 240
-export const KICK_TARGET_GRID: { x: number; y: number }[][] = [
-    // col 0
-    [ {x:-295,y:80}, {x:-295,y:31}, {x:-295,y:-18}, {x:-295,y:-66} ],
-    // col 1
-    [ {x:-222,y:80}, {x:-222,y:31}, {x:-222,y:-18}, {x:-222,y:-66} ],
-    // col 2
-    [ {x:-148,y:80}, {x:-148,y:31}, {x:-148,y:-18}, {x:-148,y:-66} ],
-    // col 3
-    [ {x:-75, y:80}, {x:-75, y:31}, {x:-75, y:-18}, {x:-75, y:-66} ],
-    // col 4
-    [ {x:-2,  y:80}, {x:-2,  y:31}, {x:-2,  y:-18}, {x:-2,  y:-66} ],
-    // col 5
-    [ {x:72,  y:80}, {x:72,  y:31}, {x:72,  y:-18}, {x:72,  y:-66} ],
-    // col 6
-    [ {x:145, y:80}, {x:145, y:31}, {x:145, y:-18}, {x:145, y:-66} ],
-    // col 7
-    [ {x:218, y:80}, {x:218, y:31}, {x:218, y:-18}, {x:218, y:-66} ],
-    // col 8
-    [ {x:292, y:80}, {x:292, y:31}, {x:292, y:-18}, {x:292, y:-66} ],
-];

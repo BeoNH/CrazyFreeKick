@@ -4,6 +4,7 @@ import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_BALL_KICK, ON_KICK_SETUP } from '../common/GameEvents';
 import { BALL_FLIGHT_END, BALL_SCALE_MIN, BALL_SCALE_STEP, BALL_KEEPER_CHECK_SCALE, BALL_WALL_CHECK_SCALE, CANVAS_WIDTH, CANVAS_HEIGHT, STEP_SPEED_BALL, } from '../common/GameConfig';
 import { Logger } from '../utils/Logger';
+import GameManager from '../managers/GameManager';
 
 // ============================================================
 // BallCtrl — Điều khiển bóng
@@ -22,22 +23,22 @@ const TAG = 'BallCtrl';
 @ccclass('BallCtrl')
 export default class BallCtrl extends Component {
 
-    @property(Animation)
+    @property({ type: Animation, tooltip: 'Hoạt ảnh bóng xoáy' })
     anim: Animation = null!;
 
     // ── Flight state ───────────────────────────
-    private _isFlying: boolean = false;
-    private _flightStep: number = 0;
+    private isFlying: boolean = false;
+    private flightStep: number = 0;
 
     // ── Bezier curve ───────────────────────────
-    private _curveStart: { x: number; y: number } = { x: 0, y: 0 };
-    private _curveMid: { x: number; y: number } = { x: 0, y: 0 };
-    private _curveEnd: { x: number; y: number } = { x: 0, y: 0 };
+    private curveStart: { x: number; y: number } = { x: 0, y: 0 };
+    private curveMid: { x: number; y: number } = { x: 0, y: 0 };
+    private curveEnd: { x: number; y: number } = { x: 0, y: 0 };
 
     // ── Collision check flags (chỉ trigger 1 lần mỗi lượt) ──
-    private _keeperCheckDone: boolean = false;
-    private _wallCheckDone: boolean = false;
-    private _numWalls: number = 0;
+    private keeperCheckDone: boolean = false;
+    private wallCheckDone: boolean = false;
+    private numWalls: number = 0;
 
     // ────────────────────────────────────────────
     // Lifecycle
@@ -45,7 +46,7 @@ export default class BallCtrl extends Component {
 
     onLoad(): void {
         BroadcastReceiver.register(ON_BALL_KICK, this._onBallKick.bind(this), this);
-        BroadcastReceiver.register(ON_KICK_SETUP, this._onKickSetup.bind(this), this);
+        BroadcastReceiver.register(ON_KICK_SETUP, this._onBallSetup.bind(this), this);
     }
 
     onDestroy(): void {
@@ -53,26 +54,13 @@ export default class BallCtrl extends Component {
     }
 
     update(dt: number): void {
-        if (!this._isFlying) return;
+        if (!this.isFlying) return;
         this._updateFlight();
     }
 
     // ────────────────────────────────────────────
     // Public API
     // ────────────────────────────────────────────
-
-    /** Đặt bóng về vị trí ban đầu (gọi khi setup lượt mới) */
-    public resetToPosition(posX: number, posY: number): void {
-        this.node.setPosition(posX, posY, 0);
-        this.node.setScale(1, 1, 1);
-        this.node.angle = 0;
-        this._isFlying = false;
-        this._flightStep = 0;
-        this._keeperCheckDone = false;
-        this._wallCheckDone = false;
-
-        if (this.anim) this.anim.stop();
-    }
 
     /** Bóng fade ra khi GOAL hoặc OUT */
     public fadeOut(): void {
@@ -84,7 +72,7 @@ export default class BallCtrl extends Component {
 
     /** Bóng bị chặn — văng xuống dưới màn hình */
     public bounce(fromCjsX: number, isKeeperSave: boolean): void {
-        this._isFlying = false;
+        this.isFlying = false;
         const goRight = fromCjsX < CANVAS_WIDTH / 2;
         const duration = isKeeperSave ? 0.7 : 0.5;
 
@@ -94,11 +82,7 @@ export default class BallCtrl extends Component {
 
         tween(this.node)
             .to(duration, {
-                position: new Vec3(
-                    curPos.x + (goRight ? 100 : -100),
-                    targetY,
-                    0,
-                ),
+                position: new Vec3(curPos.x + (goRight ? 100 : -100), targetY, 0,),
             })
             .call(() => {
                 // GameManager.onBallLanded(missed=true nếu wall, false nếu keeper)
@@ -112,29 +96,37 @@ export default class BallCtrl extends Component {
     // ────────────────────────────────────────────
 
     /** Reposition bóng về vị trí ban đầu của lượt sút */
-    private _onKickSetup(data: { ballPos: { x: number; y: number } }): void {
-        this.resetToPosition(data.ballPos.x, data.ballPos.y);
+    private _onBallSetup(data: { ballPos: { x: number; y: number } }): void {
+        this.node.setPosition(data.ballPos.x, data.ballPos.y, 0);
+        this.node.setScale(1, 1, 1);
+        this.node.angle = 0;
+        this.isFlying = false;
+        this.flightStep = 0;
+        this.keeperCheckDone = false;
+        this.wallCheckDone = false;
+
+        if (this.anim) this.anim.stop();
     }
 
-    /** Frame 4: bóng thực sự bắt đầu bay */
+    /** Bóng thực sự bắt đầu bay */
     private _onBallKick(data: { targetPos: { x: number; y: number } }): void {
         const { targetPos } = data;
 
         const startCjsX = this.node.position.x + CANVAS_WIDTH / 2;
         const startCjsY = -this.node.position.y + CANVAS_HEIGHT / 2;
 
-        this._curveStart = { x: startCjsX, y: startCjsY };
-        this._curveEnd = { x: targetPos.x, y: targetPos.y };
-        this._curveMid = this._calcMidPoint(this._curveStart, this._curveEnd);
+        this.curveStart = { x: startCjsX, y: startCjsY };
+        this.curveEnd = { x: targetPos.x, y: targetPos.y };
+        this.curveMid = this._calcMidPoint(this.curveEnd);
 
-        this._flightStep = 0;
-        this._isFlying = true;
-        this._keeperCheckDone = false;
-        this._wallCheckDone = false;
+        this.flightStep = 0;
+        this.isFlying = true;
+        this.keeperCheckDone = false;
+        this.wallCheckDone = false;
 
-        if (this.anim) this.anim.play('ball_thrown');
+        if (this.anim) this.anim.play();
 
-        Logger.info(TAG, 'ball kicked → target CJS', targetPos);
+        Logger.info(TAG, 'ball kicked → target', targetPos);
     }
 
     // ────────────────────────────────────────────
@@ -143,18 +135,18 @@ export default class BallCtrl extends Component {
     // ────────────────────────────────────────────
 
     private _updateFlight(): void {
-        this._flightStep += STEP_SPEED_BALL;
+        this.flightStep += STEP_SPEED_BALL;
         this.node.angle -= 5;   // xoay bóng
 
-        if (this._flightStep >= BALL_FLIGHT_END) {
-            this._flightStep = 0;
-            this._isFlying = false;
+        if (this.flightStep >= BALL_FLIGHT_END) {
+            this.flightStep = 0;
+            this.isFlying = false;
             this._notifyLanded(false);
             return;
         }
 
         // Quadratic Bezier: t ∈ [0,1]
-        const t = this._easeOutCubic(this._flightStep, 0, 1, BALL_FLIGHT_END);
+        const t = this._easeOutCubic(this.flightStep, 0, 1, BALL_FLIGHT_END);
         const pos = this._bezierPoint(t);
 
         this.node.setPosition(pos.x, pos.y, 0);
@@ -167,8 +159,8 @@ export default class BallCtrl extends Component {
         }
 
         // Check keeper (scale <= 0.7) — chỉ 1 lần
-        if (!this._keeperCheckDone && sc.x <= BALL_KEEPER_CHECK_SCALE) {
-            this._keeperCheckDone = true;
+        if (!this.keeperCheckDone && sc.x <= BALL_KEEPER_CHECK_SCALE) {
+            this.keeperCheckDone = true;
             // GameManager đã set _lastShotResult.ballHitWall
             // BallCtrl không tự quyết — bounce() sẽ được GoalKeeperCtrl gọi
             // thông qua GameManager sau khi nhận ON_SHOT_START
@@ -176,8 +168,8 @@ export default class BallCtrl extends Component {
         }
 
         // Check wall (scale <= 0.75) — chỉ 1 lần
-        if (!this._wallCheckDone && this._numWalls > 0 && sc.x <= BALL_WALL_CHECK_SCALE) {
-            this._wallCheckDone = true;
+        if (!this.wallCheckDone && this.numWalls > 0 && sc.x <= BALL_WALL_CHECK_SCALE) {
+            this.wallCheckDone = true;
             // WallCtrl sẽ gọi gameManager.controlWall() → bounce()
         }
     }
@@ -189,12 +181,12 @@ export default class BallCtrl extends Component {
     /** Quadratic Bezier point tại t */
     private _bezierPoint(t: number): { x: number; y: number } {
         const inv = 1 - t;
-        const x = inv * inv * this._curveStart.x
-            + 2 * inv * t * this._curveMid.x
-            + t * t * this._curveEnd.x;
-        const y = inv * inv * this._curveStart.y
-            + 2 * inv * t * this._curveMid.y
-            + t * t * this._curveEnd.y;
+        const x = inv * inv * this.curveStart.x
+            + 2 * inv * t * this.curveMid.x
+            + t * t * this.curveEnd.x;
+        const y = inv * inv * this.curveStart.y
+            + 2 * inv * t * this.curveMid.y
+            + t * t * this.curveEnd.y;
         return { x, y };
     }
 
@@ -202,10 +194,7 @@ export default class BallCtrl extends Component {
      * Tính điểm giữa Bezier ngẫu nhiên (tạo cảm giác xoáy bóng).
      * Tương đương CBall._calculateMidPoint trong file gốc.
      */
-    private _calcMidPoint(
-        start: { x: number; y: number },
-        end: { x: number; y: number },
-    ): { x: number; y: number } {
+    private _calcMidPoint(end: { x: number; y: number },): { x: number; y: number } {
         const rand = Math.floor(Math.random() * 50) + 1;
         const half = CANVAS_WIDTH / 2;
 
@@ -230,13 +219,13 @@ export default class BallCtrl extends Component {
 
     private _notifyLanded(missed: boolean): void {
         // Tìm GameManager qua node Managers trong scene
-        const mgr = this.node.scene?.getChildByName('UIRoot')
-            ?.getChildByName('Managers')
-            ?.getComponent('GameManager') as import('../managers/GameManager').default | null;
-        if (mgr) {
-            mgr.onBallLanded(missed);
-        } else {
-            Logger.error(TAG, 'GameManager not found');
-        }
+        // const mgr = this.node.scene?.getChildByName('UIRoot')
+        //     ?.getChildByName('Managers')
+        //     ?.getComponent('GameManager') as import('../managers/GameManager').default | null;
+        // if (mgr) {
+        //     mgr.onBallLanded(missed);
+        // } else {
+        //     Logger.error(TAG, 'GameManager not found');
+        // }
     }
 }

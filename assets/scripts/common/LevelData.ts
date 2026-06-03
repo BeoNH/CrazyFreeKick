@@ -1,24 +1,4 @@
-import {KeeperAction } from './GameConfig';
-
-// ────────────────────────────────────────────────
-// Interfaces
-// ────────────────────────────────────────────────
-
-export interface ILevelInfo {
-    goalToScore: number;
-    kickLeft:    number;
-}
-
-export interface IPosition {
-    x: number;
-    y: number;
-}
-
-export interface IWallData {
-    x:   number;
-    y:   number;
-    num: number;   // số người trong tường (0 = không có)
-}
+import {ILevelInfo, IPosition, IWallData, KeeperAction } from './GameConfig';
 
 // ────────────────────────────────────────────────
 // Level info (goalToScore, kickLeft)
@@ -78,13 +58,13 @@ export const PLAYER_POSITIONS_BASE: IPosition[] = [P0, P1, P2];
 // ────────────────────────────────────────────────
 
 const W: IWallData[] = [
-    { x:    0, y:  0, num: 0 },  // w[0] — không có tường
-    { x: -155, y: 25, num: 1 },  // w[1]
-    { x:   70, y: 25, num: 1 },  // w[2]
-    { x: -155, y: 25, num: 2 },  // w[3]
-    { x:   70, y: 25, num: 2 },  // w[4]
-    { x: -155, y: 25, num: 3 },  // w[5]
-    { x:   70, y: 25, num: 3 },  // w[6]
+    { x:    0, y:  0, num: 0 },   // w[0] — không có tường
+    { x: -155, y: -70, num: 1 },  // w[1]
+    { x:  170, y: -70, num: 1 },  // w[2]
+    { x: -155, y: -70, num: 2 },  // w[3]
+    { x:  170, y: -70, num: 2 },  // w[4]
+    { x: -155, y: -70, num: 3 },  // w[5]
+    { x:  170, y: -70, num: 3 },  // w[6]
 ];
 
 // wallPosGrid[level][kick]

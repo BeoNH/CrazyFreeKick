@@ -1,5 +1,5 @@
-import { _decorator, Component } from 'cc';
-import { BONUS_DECREASE, BONUS_START, KEEPER_ACTION_INFO, KeeperAction, MATRIX_X_END, MATRIX_X_START, MATRIX_Y_END, MATRIX_Y_START, NUM_LEVEL, NUM_SAVE, RANGE_HEIGHT, RANGE_WIDTH, TeamIndex, TEAM_KEYS, } from '../common/GameConfig';
+import { _decorator, Component, Vec3 } from 'cc';
+import { BONUS_DECREASE, BONUS_START, KEEPER_ACTION_INFO, KeeperAction, MATRIX_X_END, MATRIX_X_START, MATRIX_Y_END, MATRIX_Y_START, NUM_LEVEL, NUM_SAVE, RANGE_HEIGHT, RANGE_WIDTH, TeamIndex, TEAM_KEYS, WALL_WIDTH, WALL_HEIGHT, IPosition, } from '../common/GameConfig';
 import { getBallPosition, getLevelInfo, getPlayerPosIndex, getPlayerPosition, getWallData, KEEPER_COL_CONFIG, } from '../common/LevelData';
 import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT, ON_EXIT_GAME, ON_GAME_OVER, ON_GAME_WIN, ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_PLAYER_KICK_FRAME, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_CONFIRMED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
 import BroadcastReceiver from '../common/BroadcastReceiver';
@@ -22,12 +22,16 @@ export interface IShotResult {
     ballHitWall: boolean;
 }
 
-// ────────────────────────────────────────────────
-// GameManager
-// ────────────────────────────────────────────────
-
 @ccclass('GameManager')
 export default class GameManager extends Component {
+    private static _instance: GameManager | null = null;
+
+    static get instance(): GameManager {
+        if (!GameManager._instance) {
+            GameManager._instance = new GameManager();
+        }
+        return GameManager._instance;
+    }
 
     // ── Session state ──────────────────────────
     private gScore: number = 0;
@@ -53,7 +57,8 @@ export default class GameManager extends Component {
     // ────────────────────────────────────────────
 
     onLoad(): void {
-        BroadcastReceiver.register(ON_SHOT_CONFIRMED, this.onShotConfirmed.bind(this), this);
+        GameManager._instance = this;
+
         BroadcastReceiver.register(ON_PLAYER_KICK_FRAME, this.onPlayerKickFrame.bind(this), this);
         BroadcastReceiver.register(ON_EXIT_GAME, this.onExitGame.bind(this), this);
     }
@@ -222,11 +227,6 @@ export default class GameManager extends Component {
         });
     }
 
-    // ────────────────────────────────────────────
-    // Private — Shot resolution
-    // Tương đương CGame.animatePlayer + frame-4 logic trong file gốc
-    // ────────────────────────────────────────────
-
     /**
      * PlayerCtrl phát khi animation shot đến frame 4.
      * Tương đương block `if (animFrameCount === 4 && !isShooting)` trong CGame.update.
@@ -239,7 +239,7 @@ export default class GameManager extends Component {
 
         // Phát event để BallCtrl bắt đầu bay thật sự
         BroadcastReceiver.send(ON_BALL_KICK, {
-            targetPos: this.calcKickTarget(this.pendingCol, this.pendingRow),
+            targetPos: this.ballPos,
         });
 
         // Phát event để GoalKeeperCtrl nhảy
@@ -255,17 +255,17 @@ export default class GameManager extends Component {
         }
     }
 
-    // ── Pending shot coords (lưu lại từ _onShotConfirmed để dùng ở frame 4)
-    private pendingCol: number = 0;
-    private pendingRow: number = 0;
+    private ballPos: IPosition;
 
-    private onShotConfirmed(data: IShotConfirmedData): void {
+    // Tính toán điểm rơi bóng thành công hay không
+    public onShotConfirmed(data: IShotConfirmedData): void {
         if (!this.isReadyToKick) return;
         this.isBonusRunning = false;
 
         const { col, row } = data;
-        this.pendingCol = col;
-        this.pendingRow = row;
+
+        this.ballPos = this.calcKickTarget(col, row);
+
         const colCfg = KEEPER_COL_CONFIG[col];
 
         // 1. Xác định keeperAction (hướng bóng bay)
@@ -275,16 +275,9 @@ export default class GameManager extends Component {
         let ballHitWall = false;
         let keeperTargetAction: KeeperAction;
 
-        const wallData = getWallData(this.gLevelIndex, this.gKickIndex);
-
-        if (wallData.num > 0) {
-            // Tường → block chắc chắn
-            ballHitWall = true;
-            keeperTargetAction = keeperAction;  // không quan trọng, wall override
-        } else if (
-            keeperAction !== KeeperAction.OUT &&
-            colCfg.catchPercent > 0 &&
-            Math.floor(Math.random() * 100) < colCfg.catchPercent
+        if (keeperAction !== KeeperAction.OUT
+            && colCfg.catchPercent > 0
+            && Math.floor(Math.random() * 100) < colCfg.catchPercent
         ) {
             // Thủ môn bắt được theo xác suất
             keeperTargetAction = keeperAction;
@@ -294,6 +287,28 @@ export default class GameManager extends Component {
             do {
                 keeperTargetAction = Math.floor(Math.random() * NUM_SAVE) as KeeperAction;
             } while (keeperTargetAction === keeperAction);
+        }
+
+        // Kiểm tra va chạm với tường
+        const wallData = getWallData(this.gLevelIndex, this.gKickIndex);
+        if (wallData.num > 0) {
+            // Tường chặn được bóng
+            const totalWidth = WALL_WIDTH * wallData.num;
+            const halfWidth = totalWidth / 2;
+            const halfHeight = WALL_HEIGHT / 2;
+
+            const ballP = this.ballPos;
+
+            const hitWall = (
+                ballP.x >= wallData.x - halfWidth &&
+                ballP.x <= wallData.x + halfWidth &&
+                ballP.y >= wallData.y - halfHeight &&
+                ballP.y <= wallData.y + halfHeight
+            );
+
+            if (hitWall) {
+                ballHitWall = true;
+            }
         }
 
         // 3. Lưu kết quả để onBallLanded đọc
