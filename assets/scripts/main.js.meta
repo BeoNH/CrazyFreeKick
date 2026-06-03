@@ -9,9 +9,9 @@
   "subMetas": {},
   "userData": {
     "loadPluginInEditor": false,
-    "loadPluginInWeb": true,
-    "loadPluginInNative": true,
-    "loadPluginInMiniGame": true,
+    "loadPluginInWeb": false,
+    "loadPluginInNative": false,
+    "loadPluginInMiniGame": false,
     "isPlugin": true
   }
 }

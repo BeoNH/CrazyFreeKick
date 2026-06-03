@@ -1,7 +1,7 @@
 import { _decorator, Component } from 'cc';
 import { BONUS_DECREASE, BONUS_START, KEEPER_ACTION_INFO, KeeperAction, MATRIX_X_END, MATRIX_X_START, MATRIX_Y_END, MATRIX_Y_START, NUM_LEVEL, NUM_SAVE, RANGE_HEIGHT, RANGE_WIDTH, TeamIndex, TEAM_KEYS, } from '../common/GameConfig';
 import { getBallPosition, getLevelInfo, getPlayerPosIndex, getPlayerPosition, getWallData, KEEPER_COL_CONFIG, } from '../common/LevelData';
-import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT, ON_EXIT_GAME, ON_GAME_OVER, ON_GAME_WIN, ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_PLAYER_KICK_FRAME, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_CONFIRMED, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
+import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT, ON_EXIT_GAME, ON_GAME_OVER, ON_GAME_WIN, ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_PLAYER_KICK_FRAME, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_CONFIRMED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 
 const { ccclass } = _decorator;
@@ -30,32 +30,32 @@ export interface IShotResult {
 export default class GameManager extends Component {
 
     // ── Session state ──────────────────────────
-    private _score: number = 0;
-    private _bonus: number = BONUS_START;
-    private _goalsScored: number = 0;
-    private _goalsRequired: number = 0;
-    private _kicksLeft: number = 0;
-    private _levelIndex: number = 0;
-    private _kickIndex: number = 0;
-    private _teamKey: string = TEAM_KEYS[TeamIndex.ARGENTINA];
-    private _totalTimeStart: number = 0;
+    private gScore: number = 0;
+    private gBonus: number = BONUS_START;
+    private gGoalsScored: number = 0;
+    private gGoalsRequired: number = 0;
+    private gKicksLeft: number = 0;
+    private gLevelIndex: number = 0;
+    private gKickIndex: number = 0;
+    private gTeamKey: string = TEAM_KEYS[TeamIndex.ARGENTINA];
+    private gTotalTimeStart: number = 0;
 
     // ── Frame state ────────────────────────────
-    private _isReadyToKick: boolean = false;
-    private _isBonusRunning: boolean = false;
+    private isReadyToKick: boolean = false;
+    private isBonusRunning: boolean = false;
 
     // ── Shot result state ──────────────────────
     // Được set bởi resolveShotResult(), đọc bởi BallCtrl khi bay xong
-    private _lastShotResult: IShotResult | null = null;
+    private LastShotResult: IShotResult | null = null;
 
     // ────────────────────────────────────────────
     // Lifecycle
     // ────────────────────────────────────────────
 
     onLoad(): void {
-        BroadcastReceiver.register(ON_SHOT_CONFIRMED, this._onShotConfirmed.bind(this), this);
-        BroadcastReceiver.register(ON_PLAYER_KICK_FRAME, this._onPlayerKickFrame.bind(this), this);
-        BroadcastReceiver.register(ON_EXIT_GAME, this._onExitGame.bind(this), this);
+        BroadcastReceiver.register(ON_SHOT_CONFIRMED, this.onShotConfirmed.bind(this), this);
+        BroadcastReceiver.register(ON_PLAYER_KICK_FRAME, this.onPlayerKickFrame.bind(this), this);
+        BroadcastReceiver.register(ON_EXIT_GAME, this.onExitGame.bind(this), this);
     }
 
     onDestroy(): void {
@@ -63,10 +63,10 @@ export default class GameManager extends Component {
     }
 
     update(dt: number): void {
-        if (!this._isBonusRunning) return;
-        if (this._bonus >= BONUS_DECREASE) {
-            this._bonus -= BONUS_DECREASE;
-            BroadcastReceiver.send(ON_BONUS_CHANGED, { bonus: this._bonus });
+        if (!this.isBonusRunning) return;
+        if (this.gBonus >= BONUS_DECREASE) {
+            this.gBonus -= BONUS_DECREASE;
+            BroadcastReceiver.send(ON_BONUS_CHANGED, { bonus: this.gBonus });
         }
     }
 
@@ -76,26 +76,26 @@ export default class GameManager extends Component {
 
     /** Khởi tạo session mới hoàn toàn (từ Menu vào game) */
     public startGame(teamKey: string): void {
-        this._teamKey = teamKey;
-        this._score = 0;
-        this._levelIndex = 0;
-        this._kickIndex = 0;
-        this._totalTimeStart = Date.now();
-        this._initLevel();
+        this.gTeamKey = teamKey;
+        this.gScore = 0;
+        this.gLevelIndex = 0;
+        this.gKickIndex = 0;
+        this.gTotalTimeStart = Date.now();
+        this.initLevel();
     }
 
     /** Gọi sau khi NextLevelPopup đóng → bắt đầu level tiếp theo */
     public startNextLevel(): void {
-        this._initLevel();
+        this.initLevel();
     }
 
     /** Bắt đầu 1 lượt sút (gọi sau khi scene entities đã setup xong) */
     public beginKick(): void {
-        this._bonus = BONUS_START;
-        this._isReadyToKick = true;
-        this._isBonusRunning = true;
-        this._lastShotResult = null;
-        BroadcastReceiver.send(ON_BONUS_CHANGED, { bonus: this._bonus });
+        this.gBonus = BONUS_START;
+        this.isReadyToKick = true;
+        this.isBonusRunning = true;
+        this.LastShotResult = null;
+        BroadcastReceiver.send(ON_BONUS_CHANGED, { bonus: this.gBonus });
         BroadcastReceiver.send(ON_KICK_READY, null);
     }
 
@@ -106,10 +106,10 @@ export default class GameManager extends Component {
      *                Đặt tên theo file gốc: showMessage(missed)
      */
     public onBallLanded(missed: boolean): void {
-        this._isBonusRunning = false;
-        this._isReadyToKick = false;
+        this.isBonusRunning = false;
+        this.isReadyToKick = false;
 
-        const result = this._lastShotResult;
+        const result = this.LastShotResult;
         if (!result) return;
 
         if (missed || result.ballHitWall) {
@@ -119,11 +119,11 @@ export default class GameManager extends Component {
             BroadcastReceiver.send(ON_OUT, null);
         } else if (result.keeperTargetAction !== result.keeperAction) {
             // GOAL
-            this._goalsScored++;
-            this._score += this._bonus;
-            BroadcastReceiver.send(ON_GOAL, { score: this._score, bonus: this._bonus });
-            BroadcastReceiver.send(ON_SCORE_CHANGED, { score: this._score });
-            BroadcastReceiver.send(ON_GOALS_CHANGED, { scored: this._goalsScored, required: this._goalsRequired });
+            this.gGoalsScored++;
+            this.gScore += this.gBonus;
+            BroadcastReceiver.send(ON_GOAL, { score: this.gScore, bonus: this.gBonus });
+            BroadcastReceiver.send(ON_SCORE_CHANGED, { score: this.gScore });
+            BroadcastReceiver.send(ON_GOALS_CHANGED, { scored: this.gGoalsScored, required: this.gGoalsRequired });
             BroadcastReceiver.send(ON_CROWD_EXULT, null);
         }
 
@@ -135,68 +135,68 @@ export default class GameManager extends Component {
      * Tương đương CGame.controlIfCanContinue trong file gốc.
      */
     public controlIfCanContinue(): void {
-        if (this._goalsScored >= this._goalsRequired && this._kicksLeft <= 1) {
+        if (this.gGoalsScored >= this.gGoalsRequired && this.gKicksLeft <= 1) {
             // Qua level
-            this._levelIndex++;
-            this._kickIndex = 0;
+            this.gLevelIndex++;
+            this.gKickIndex = 0;
 
-            if (this._levelIndex >= NUM_LEVEL) {
+            if (this.gLevelIndex >= NUM_LEVEL) {
                 // WIN
-                const totalTime = Math.round((Date.now() - this._totalTimeStart) / 1000);
-                BroadcastReceiver.send(ON_GAME_WIN, { score: this._score, time: totalTime });
+                const totalTime = Math.round((Date.now() - this.gTotalTimeStart) / 1000);
+                BroadcastReceiver.send(ON_GAME_WIN, { score: this.gScore, time: totalTime });
             } else {
                 BroadcastReceiver.send(ON_LEVEL_COMPLETE, {
-                    levelIndex: this._levelIndex,
-                    goalsScored: this._goalsScored,
+                    levelIndex: this.gLevelIndex,
+                    goalsScored: this.gGoalsScored,
                 });
             }
             return;
         }
 
-        if (this._kicksLeft <= 1) {
+        if (this.gKicksLeft <= 1) {
             // GAME OVER
-            const totalTime = Math.round((Date.now() - this._totalTimeStart) / 1000);
-            BroadcastReceiver.send(ON_GAME_OVER, { score: this._score, time: totalTime });
+            const totalTime = Math.round((Date.now() - this.gTotalTimeStart) / 1000);
+            BroadcastReceiver.send(ON_GAME_OVER, { score: this.gScore, time: totalTime });
             return;
         }
 
         // Còn lượt → tiếp tục
-        this._kicksLeft--;
-        this._kickIndex++;
-        BroadcastReceiver.send(ON_KICKS_CHANGED, { kicksLeft: this._kicksLeft });
+        this.gKicksLeft--;
+        this.gKickIndex++;
+        BroadcastReceiver.send(ON_KICKS_CHANGED, { kicksLeft: this.gKicksLeft });
 
         // Báo UIManager setup entities cho lượt tiếp theo
-        this._broadcastKickSetup();
+        this.broadcastKickSetup();
     }
 
     // ── Getters dùng cho Controllers khi cần đọc state ──
 
-    public get levelIndex(): number { return this._levelIndex; }
-    public get kickIndex(): number { return this._kickIndex; }
-    public get teamKey(): string { return this._teamKey; }
-    public get goalsScored(): number { return this._goalsScored; }
-    public get goalsRequired(): number { return this._goalsRequired; }
-    public get kicksLeft(): number { return this._kicksLeft; }
-    public get score(): number { return this._score; }
-    public get bonus(): number { return this._bonus; }
-    public get lastShotResult(): IShotResult | null { return this._lastShotResult; }
+    public get levelIndex(): number { return this.gLevelIndex; }
+    public get kickIndex(): number { return this.gKickIndex; }
+    public get teamKey(): string { return this.gTeamKey; }
+    public get goalsScored(): number { return this.gGoalsScored; }
+    public get goalsRequired(): number { return this.gGoalsRequired; }
+    public get kicksLeft(): number { return this.gKicksLeft; }
+    public get score(): number { return this.gScore; }
+    public get bonus(): number { return this.gBonus; }
+    public get lastShotResult(): IShotResult | null { return this.LastShotResult; }
 
     // ────────────────────────────────────────────
     // Private — Level init
     // ────────────────────────────────────────────
 
-    private _initLevel(): void {
-        const info = getLevelInfo(this._levelIndex);
-        this._goalsScored = 0;
-        this._goalsRequired = info.goalToScore;
-        this._kicksLeft = info.kickLeft;
-        this._kickIndex = 0;
+    private initLevel(): void {
+        const info = getLevelInfo(this.gLevelIndex);
+        this.gGoalsScored = 0;
+        this.gGoalsRequired = info.goalToScore;
+        this.gKicksLeft = info.kickLeft;
+        this.gKickIndex = 0;
 
-        BroadcastReceiver.send(ON_SCORE_CHANGED, { score: this._score });
-        BroadcastReceiver.send(ON_GOALS_CHANGED, { scored: 0, required: this._goalsRequired });
-        BroadcastReceiver.send(ON_KICKS_CHANGED, { kicksLeft: this._kicksLeft });
+        BroadcastReceiver.send(ON_SCORE_CHANGED, { score: this.gScore });
+        BroadcastReceiver.send(ON_GOALS_CHANGED, { scored: 0, required: this.gGoalsRequired });
+        BroadcastReceiver.send(ON_KICKS_CHANGED, { kicksLeft: this.gKicksLeft });
 
-        this._broadcastKickSetup();
+        this.broadcastKickSetup();
     }
 
     /**
@@ -204,21 +204,21 @@ export default class GameManager extends Component {
      * cho lượt sút hiện tại (ball pos, player pos, wall data).
      * Tương đương CGame.createViewThings trong file gốc.
      */
-    private _broadcastKickSetup(): void {
-        const ballPos = getBallPosition(this._levelIndex, this._kickIndex);
-        const playerPos = getPlayerPosition(this._levelIndex, this._kickIndex);
-        const wallData = getWallData(this._levelIndex, this._kickIndex);
-        const posIndex = getPlayerPosIndex(this._levelIndex, this._kickIndex);
+    private broadcastKickSetup(): void {
+        const ballPos = getBallPosition(this.gLevelIndex, this.gKickIndex);
+        const playerPos = getPlayerPosition(this.gLevelIndex, this.gKickIndex);
+        const wallData = getWallData(this.gLevelIndex, this.gKickIndex);
+        const posIndex = getPlayerPosIndex(this.gLevelIndex, this.gKickIndex);
 
         // UIManager lắng nghe event này để reposition entities
         BroadcastReceiver.send(ON_KICK_SETUP, {
-            levelIndex: this._levelIndex,
-            kickIndex: this._kickIndex,
+            levelIndex: this.gLevelIndex,
+            kickIndex: this.gKickIndex,
             ballPos,
             playerPos,
             wallData,
             playerAlpha: posIndex === 1,   // true → alpha 0.5
-            teamKey: this._teamKey,
+            teamKey: this.gTeamKey,
         });
     }
 
@@ -232,14 +232,14 @@ export default class GameManager extends Component {
      * Tương đương block `if (animFrameCount === 4 && !isShooting)` trong CGame.update.
      * Lúc này _lastShotResult đã có sẵn từ _onShotConfirmed.
      */
-    private _onPlayerKickFrame(): void {
-        if (!this._lastShotResult) return;
+    private onPlayerKickFrame(): void {
+        if (!this.LastShotResult) return;
 
-        const result = this._lastShotResult;
+        const result = this.LastShotResult;
 
         // Phát event để BallCtrl bắt đầu bay thật sự
         BroadcastReceiver.send(ON_BALL_KICK, {
-            targetPos: this._calcKickTarget(this._pendingCol, this._pendingRow),
+            targetPos: this.calcKickTarget(this.pendingCol, this.pendingRow),
         });
 
         // Phát event để GoalKeeperCtrl nhảy
@@ -249,23 +249,23 @@ export default class GameManager extends Component {
         }
 
         // Phát event để WallCtrl nhảy (nếu có tường)
-        const wallData = getWallData(this._levelIndex, this._kickIndex);
+        const wallData = getWallData(this.gLevelIndex, this.gKickIndex);
         if (wallData.num > 0) {
             BroadcastReceiver.send(ON_WALL_JUMP, { wallData });
         }
     }
 
     // ── Pending shot coords (lưu lại từ _onShotConfirmed để dùng ở frame 4)
-    private _pendingCol: number = 0;
-    private _pendingRow: number = 0;
+    private pendingCol: number = 0;
+    private pendingRow: number = 0;
 
-    private _onShotConfirmed(data: IShotConfirmedData): void {
-        if (!this._isReadyToKick) return;
-        this._isBonusRunning = false;
+    private onShotConfirmed(data: IShotConfirmedData): void {
+        if (!this.isReadyToKick) return;
+        this.isBonusRunning = false;
 
         const { col, row } = data;
-        this._pendingCol = col;
-        this._pendingRow = row;
+        this.pendingCol = col;
+        this.pendingRow = row;
         const colCfg = KEEPER_COL_CONFIG[col];
 
         // 1. Xác định keeperAction (hướng bóng bay)
@@ -275,7 +275,7 @@ export default class GameManager extends Component {
         let ballHitWall = false;
         let keeperTargetAction: KeeperAction;
 
-        const wallData = getWallData(this._levelIndex, this._kickIndex);
+        const wallData = getWallData(this.gLevelIndex, this.gKickIndex);
 
         if (wallData.num > 0) {
             // Tường → block chắc chắn
@@ -297,7 +297,7 @@ export default class GameManager extends Component {
         }
 
         // 3. Lưu kết quả để onBallLanded đọc
-        this._lastShotResult = {
+        this.LastShotResult = {
             keeperAction,
             keeperTargetAction,
             catchPercent: colCfg.catchPercent,
@@ -306,9 +306,9 @@ export default class GameManager extends Component {
 
         // 4. Phát ON_SHOT_START → PlayerCtrl bắt đầu animation sút
         //    BallCtrl và GoalKeeperCtrl sẽ được trigger tại frame 4 (ON_PLAYER_KICK_FRAME)
-        BroadcastReceiver.send('ON_SHOT_START', {
-            teamKey: this._teamKey,
-            playerPos: getPlayerPosition(this._levelIndex, this._kickIndex),
+        BroadcastReceiver.send(ON_SHOT_START, {
+            teamKey: this.gTeamKey,
+            playerPos: getPlayerPosition(this.gLevelIndex, this.gKickIndex),
         });
     }
 
@@ -316,15 +316,15 @@ export default class GameManager extends Component {
      * Tính tọa độ pixel đích của bóng theo col/row.
      * Tương đương _initKickPoints trong file gốc.
      */
-    private _calcKickTarget(col: number, row: number): { x: number; y: number } {
+    private calcKickTarget(col: number, row: number): { x: number; y: number } {
         const x = Math.round((MATRIX_X_END - MATRIX_X_START) / RANGE_WIDTH * col + MATRIX_X_START) + 5;
         const y = Math.round((MATRIX_Y_END - MATRIX_Y_START) / RANGE_HEIGHT * row + MATRIX_Y_START) + 5;
         return { x, y };
     }
 
-    private _onExitGame(): void {
-        this._isReadyToKick = false;
-        this._isBonusRunning = false;
-        this._lastShotResult = null;
+    private onExitGame(): void {
+        this.isReadyToKick = false;
+        this.isBonusRunning = false;
+        this.LastShotResult = null;
     }
 }
