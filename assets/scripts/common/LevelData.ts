@@ -1,4 +1,4 @@
-import {ILevelInfo, IPosition, IWallData, KeeperAction } from './GameConfig';
+import {IColConfig, ILevelInfo, IPosition, IWallData, KeeperAction } from './GameConfig';
 
 // ────────────────────────────────────────────────
 // Level info (goalToScore, kickLeft)
@@ -79,19 +79,18 @@ export const WALL_POS_GRID: IWallData[][] = [
 
 // ────────────────────────────────────────────────
 // Bảng keeper action theo [col][row]
-// Trích từ CGame.animatePlayer — keeperActionMap
+// Hành động của thủ môn tuỳ vào vị trí bóng
 // ────────────────────────────────────────────────
-
-// catchPercent: tỉ lệ % thủ môn bắt được (ballTargetX trong file gốc)
-export interface IColConfig {
-    catchPercent: number;           // 0 = OUT chắc chắn, không check
-    rowActions: KeeperAction[];     // index 0..3 tương ứng row 0..3
-}
 
 // Các cột 0,1,7,8 → OUT hoàn toàn (catchPercent = 0, không check)
 const OUT_COL: IColConfig = {
     catchPercent: 0,
-    rowActions: [KeeperAction.OUT, KeeperAction.OUT, KeeperAction.OUT, KeeperAction.OUT],
+    rowActions: [
+        KeeperAction.OUT, 
+        KeeperAction.OUT, 
+        KeeperAction.OUT, 
+        KeeperAction.OUT
+    ],
 };
 
 export const KEEPER_COL_CONFIG: IColConfig[] = [

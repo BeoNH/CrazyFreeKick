@@ -10,12 +10,6 @@ export const CANVAS_HEIGHT = 640;
 export const RANGE_WIDTH  = 9;
 export const RANGE_HEIGHT = 4;
 
-// Vùng pixel của lưới mục tiêu (tọa độ CreateJS gốc, dùng để tính kickTargetPoints)
-export const MATRIX_X_START = 380;
-export const MATRIX_X_END   = 1040;
-export const MATRIX_Y_START = 235;
-export const MATRIX_Y_END   = 430;
-
 // Số lượng
 export const NUM_LEVEL = 6;
 export const NUM_KICK  = 5;
@@ -44,7 +38,7 @@ export const GOAL_HEIGHT = 145;
 export const GOALKEEPER_POS = { x: 0, y: -70 };
 
 // Tốc độ thanh chỉ báo ban đầu (ms cho 1 lần đi hết thanh)
-export const SHOT_INDICATOR_SPEED_DEFAULT  = 1800;  // ms
+export const SHOT_INDICATOR_SPEED_DEFAULT  = 1500;  // ms
 export const SHOT_INDICATOR_SPEED_DECREASE = 200;   // giảm mỗi level
 
 // Bonus
@@ -80,6 +74,19 @@ export interface IKeeperActionInfo {
     height: number;
     pos:    { x: number; y: number };
     frames: number;
+}
+
+export interface IColConfig {
+    catchPercent: number;           // 0 = OUT chắc chắn, không check
+    rowActions: KeeperAction[];     // index 0..3 tương ứng row 0..3
+}
+
+export interface IShotResult {
+    keeperAction: KeeperAction;   // hướng bóng bay (theo col/row)
+    keeperTargetAction: KeeperAction;   // action thủ môn thực tế chọn
+    catchPercent: number;
+    ballHitKeeper: boolean;
+    ballHitWall: boolean;
 }
 
 

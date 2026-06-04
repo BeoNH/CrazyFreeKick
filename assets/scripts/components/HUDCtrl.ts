@@ -1,8 +1,9 @@
 
-import { _decorator, Component, Label, Node, Sprite } from 'cc';
+import { _decorator, Component, Label, Node, Sprite, tween, Vec3 } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
-import {ON_BONUS_CHANGED,ON_GOALS_CHANGED,ON_KICKS_CHANGED,ON_SCORE_CHANGED,} from '../common/GameEvents';
+import { ON_BONUS_CHANGED, ON_GOAL, ON_GOALS_CHANGED, ON_KICKS_CHANGED, ON_OUT, ON_SAVED, ON_SCORE_CHANGED, } from '../common/GameEvents';
 import { Logger } from '../utils/Logger';
+import GameManager from '../managers/GameManager';
 
 // ============================================================
 // HUDCtrl — Hiển thị HUD trong game
@@ -17,13 +18,16 @@ const TAG = 'HUDCtrl';
 export default class HUDCtrl extends Component {
 
     // Labels
-    @property(Label) scoreLabel:     Label = null!;
-    @property(Label) bonusLabel:     Label = null!;
+    @property(Label) scoreLabel: Label = null!;
+    @property(Label) bonusLabel: Label = null!;
     @property(Label) goalCountLabel: Label = null!;
 
     // Kick ball icons — 5 sprites, ẩn dần khi dùng hết
     @property({ type: [Node] })
     kickBallIcons: Node[] = [];   // index 0..4, gán trong Inspector
+
+    @property({ type: Node })
+    resultLabel: Node = null!;
 
     // ────────────────────────────────────────────
     // Lifecycle
@@ -34,6 +38,11 @@ export default class HUDCtrl extends Component {
         BroadcastReceiver.register(ON_BONUS_CHANGED, this._onBonusChanged.bind(this), this);
         BroadcastReceiver.register(ON_KICKS_CHANGED, this._onKicksChanged.bind(this), this);
         BroadcastReceiver.register(ON_GOALS_CHANGED, this._onGoalsChanged.bind(this), this);
+
+        BroadcastReceiver.register(ON_SAVED, () => this._onResultShow(1), this);
+        BroadcastReceiver.register(ON_OUT, () => this._onResultShow(2), this);
+        BroadcastReceiver.register(ON_GOAL, () => this._onResultShow(0), this);
+        this.resultLabel.active = false;
     }
 
     onDestroy(): void {
@@ -57,9 +66,6 @@ export default class HUDCtrl extends Component {
     }
 
     private _onKicksChanged(data: { kicksLeft: number }): void {
-        // Hiện đúng số icon bóng còn lại
-        // kickBallIcons[0] = lượt cuối còn lại, [4] = đầy đủ
-        // File gốc: ẩn từ icon cuối trở về trước
         for (let i = 0; i < this.kickBallIcons.length; i++) {
             const node = this.kickBallIcons[i];
             if (node) {
@@ -73,5 +79,29 @@ export default class HUDCtrl extends Component {
         if (this.goalCountLabel) {
             this.goalCountLabel.string = `${data.scored}/${data.required}`;
         }
+    }
+
+    private _onResultShow(num: number) {
+        for (let i = 0; i < this.resultLabel.children.length; i++) {
+            const node = this.resultLabel.children[i];
+            node.active = i == num;
+        }
+        this.resultLabel.active = true;
+
+        this.resultLabel.setScale(new Vec3(0.2, 0.2, 0.2));
+
+        tween(this.resultLabel)
+            .to(0.4, {
+                scale: new Vec3(1.2, 1.2, 1.2)
+            })
+            .to(0.2, {
+                scale: new Vec3(1, 1, 1)
+            })
+            .delay(1)
+            .call(() => {
+                this.resultLabel.active = false;
+                GameManager.instance.controlIfCanContinue();
+            })
+            .start();
     }
 }
