@@ -36,9 +36,9 @@ export const BALL_POS_GRID: IPosition[][] = [
 // Vị trí cầu thủ — 3 điểm cơ sở (p[0], p[1], p[2])
 // ────────────────────────────────────────────────
 
-const P0: IPosition = { x: -300, y: -180 };
-const P1: IPosition = { x:  -20, y: -180 };
-const P2: IPosition = { x:  250, y: -180 };
+const P0: IPosition = { x: -300, y: -125 };
+const P1: IPosition = { x:  -20, y: -125 };
+const P2: IPosition = { x:  250, y: -125 };
 
 // playerPosGrid[level][kick]
 export const PLAYER_POS_GRID: IPosition[][] = [

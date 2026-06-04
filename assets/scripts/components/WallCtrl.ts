@@ -1,4 +1,4 @@
-import { _decorator, Animation, Component, Node } from 'cc';
+import { _decorator, Animation, Component, Layout, Node } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_KICK_SETUP, ON_WALL_JUMP } from '../common/GameEvents';
 import { IWallData, WALL_SLOT_OFFSET } from '../common/GameConfig';
@@ -47,6 +47,13 @@ export default class WallCtrl extends Component {
         for (let i = 0; i < this.wallNodes.length; i++) {
             const node = this.wallNodes[i];
             node.active = i < wallData.num;
+        }
+        
+        const layout = this.node.getComponent(Layout);
+        if (layout) {
+            layout.enabled = true;
+            layout.updateLayout();
+            layout.enabled = false;
         }
     }
 

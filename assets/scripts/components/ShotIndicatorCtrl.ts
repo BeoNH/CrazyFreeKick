@@ -101,6 +101,7 @@ export default class ShotIndicatorCtrl extends Component {
 
         // Đặt arrow về bên trái
         this.hArrow.setPosition(-H_BAR_HALF, 0, 0);
+        this.vArrow.setPosition(0, V_BAR_HALF, 0);
         this.runHorizontal();
     }
 
@@ -109,8 +110,8 @@ export default class ShotIndicatorCtrl extends Component {
         const dur = this.duration / 1000;  // giây
 
         this.hTween = tween(this.hArrow)
-            .to(dur, { position: new Vec3(H_BAR_HALF, 0, 0) })
-            .to(dur, { position: new Vec3(-H_BAR_HALF, 0, 0) })
+            .to(dur, { position: new Vec3(H_BAR_HALF, 0, 0) }, { easing: 'quadInOut' })
+            .to(dur, { position: new Vec3(-H_BAR_HALF, 0, 0) }, { easing: 'quadInOut' })
             .union()
             .repeatForever()
             .start();
@@ -139,17 +140,16 @@ export default class ShotIndicatorCtrl extends Component {
         this.step = 1;
 
         // Đặt arrow về trên cùng
-        this.vArrow.setPosition(0, V_BAR_HALF, 0);
         this.runVertical();
     }
 
     private runVertical(): void {
         this.vTween?.stop();
-        const dur = this.duration / 1000;
+        const dur = this.duration / 1000 / 1.5;
 
         this.vTween = tween(this.vArrow)
-            .to(dur, { position: new Vec3(0, -V_BAR_HALF, 0) })
-            .to(dur, { position: new Vec3(0, V_BAR_HALF, 0) })
+            .to(dur, { position: new Vec3(0, -V_BAR_HALF, 0) }, { easing: 'quadInOut' })
+            .to(dur, { position: new Vec3(0, V_BAR_HALF, 0) }, { easing: 'quadInOut' })
             .union()
             .repeatForever()
             .start();

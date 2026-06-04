@@ -4,6 +4,8 @@ import { getBallPosition, getLevelInfo, getPlayerPosIndex, getPlayerPosition, ge
 import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT, ON_EXIT_GAME, ON_GAME_OVER, ON_GAME_WIN, ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_PLAYER_KICK_FRAME, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_CONFIRMED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { Logger } from '../utils/Logger';
+import { popupNextLevel } from '../components/Popup/popupNextLevel';
+import { popupGameOver } from '../components/Popup/popupGameOver';
 
 const { ccclass, property } = _decorator;
 
@@ -76,7 +78,7 @@ export default class GameManager extends Component {
 
     protected start(): void {
         // giả lập game mới
-        this.startGame(TEAM_KEYS[TeamIndex.ARGENTINA]);
+        this.startGame(TEAM_KEYS[TeamIndex.BRAZIL]);
     }
 
     // ────────────────────────────────────────────
@@ -312,6 +314,7 @@ export default class GameManager extends Component {
                     levelIndex: this.gLevelIndex,
                     goalsScored: this.gGoalsScored,
                 });
+                popupNextLevel.show();
             }
             return;
         }
@@ -320,6 +323,7 @@ export default class GameManager extends Component {
             // GAME OVER
             const totalTime = Math.round((Date.now() - this.gTotalTimeStart) / 1000);
             BroadcastReceiver.send(ON_GAME_OVER, { score: this.gScore, time: totalTime });
+            popupGameOver.show();
             return;
         }
         this.gKickIndex++;

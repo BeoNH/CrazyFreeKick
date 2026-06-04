@@ -1,9 +1,10 @@
-import { _decorator, Animation, Component, UIOpacity } from 'cc';
+import { _decorator, Animation, AnimationClip, Component, UIOpacity } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_KICK_SETUP, ON_SHOT_START } from '../common/GameEvents';
 import { Logger } from '../utils/Logger';
 import { TEAM_KEYS, TeamIndex } from '../common/GameConfig';
 import GameManager from '../managers/GameManager';
+import AssetLoader from '../services/AssetLoader';
 
 // ============================================================
 // PlayerCtrl — Điều khiển nhân vật người sút
@@ -75,22 +76,30 @@ export default class PlayerCtrl extends Component {
     // Private — Animation helpers
     // ────────────────────────────────────────────
 
-    private playIdle(): void {
+    private async playIdle(): Promise<void> {
         const clipName = `${this.currentTeamKey}_idle`;
-        if (this.anim?.getState(clipName)) {
-            this.anim.play(clipName);
-        } else {
-            Logger.warn(TAG, `clip not found: ${clipName}`);
+        if (!this.anim?.getState(clipName)) {
+            const clip = await AssetLoader.loadResAsync<AnimationClip>(`animations/teams/${clipName}`, AnimationClip);
+            if (!clip) {
+                Logger.warn(TAG, `clip not found: ${clipName}`);
+                return;
+            }
+            this.anim.addClip(clip, clipName);
         }
+        this.anim.play(clipName);
     }
 
-    private playShot(): void {
+    private async playShot(): Promise<void> {
         const clipName = `${this.currentTeamKey}_shot`;
-        if (this.anim?.getState(clipName)) {
-            this.anim.play(clipName);
-        } else {
-            Logger.warn(TAG, `clip not found: ${clipName}`);
+        if (!this.anim?.getState(clipName)) {
+            const clip = await AssetLoader.loadResAsync<AnimationClip>(`animations/teams/${clipName}`, AnimationClip);
+            if (!clip) {
+                Logger.warn(TAG, `clip not found: ${clipName}`);
+                return;
+            }
+            this.anim.addClip(clip, clipName);
         }
+        this.anim.play(clipName);
     }
 
     // Sự kiện gắn trong anim event
