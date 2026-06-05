@@ -4,6 +4,8 @@ import AssetLoader from '../../services/AssetLoader';
 import { TEAM_KEYS, TEAM_NAMES, TeamIndex } from '../../common/GameConfig';
 import { Logger } from '../../utils/Logger';
 import GameManager from '../../managers/GameManager';
+import { GameScene } from '../../GameScene';
+import { AudioController } from '../AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('popupSelectTeam')
@@ -35,6 +37,7 @@ export class popupSelectTeam extends Popup {
     private onToggleChanged(toggle: Toggle, customData: string): void {
         if (!toggle.isChecked) return;
 
+        AudioController.instance.selectTeam();
         const teamIndex = Number(customData) as TeamIndex;
         this.applyTeam(teamIndex);
     }
@@ -49,6 +52,8 @@ export class popupSelectTeam extends Popup {
     }
 
     onSelectTeam() {
+        AudioController.instance.click();
+        GameScene.instance.openGame();
         GameManager.instance.startGame(this.currentTeamKey);
         this.hide();
     }

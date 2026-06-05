@@ -1,7 +1,7 @@
 
 import { _decorator, Component, Label, Node, Sprite, tween, Vec3 } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
-import { ON_BONUS_CHANGED, ON_GOAL, ON_GOALS_CHANGED, ON_KICKS_CHANGED, ON_OUT, ON_SAVED, ON_SCORE_CHANGED, } from '../common/GameEvents';
+import { ON_BONUS_CHANGED, ON_GOAL, ON_GOALS_CHANGED, ON_KICKS_CHANGED, ON_OUT, ON_SAVED, ON_SCORE_CHANGED, ON_WALL_HIT, } from '../common/GameEvents';
 import { Logger } from '../utils/Logger';
 import GameManager from '../managers/GameManager';
 
@@ -40,6 +40,7 @@ export default class HUDCtrl extends Component {
         BroadcastReceiver.register(ON_GOALS_CHANGED, this._onGoalsChanged.bind(this), this);
 
         BroadcastReceiver.register(ON_SAVED, () => this._onResultShow(1), this);
+        BroadcastReceiver.register(ON_WALL_HIT, () => this._onResultShow(1), this);
         BroadcastReceiver.register(ON_OUT, () => this._onResultShow(2), this);
         BroadcastReceiver.register(ON_GOAL, () => this._onResultShow(0), this);
         this.resultLabel.active = false;
@@ -55,13 +56,13 @@ export default class HUDCtrl extends Component {
 
     private _onScoreChanged(data: { score: number }): void {
         if (this.scoreLabel) {
-            this.scoreLabel.string = String(data.score);
+            this.scoreLabel.string = 'SCORE: ' + String(data.score);
         }
     }
 
     private _onBonusChanged(data: { bonus: number }): void {
         if (this.bonusLabel) {
-            this.bonusLabel.string = String(data.bonus);
+            this.bonusLabel.string = 'BONUS x ' + String(data.bonus);
         }
     }
 

@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.AnimationClip",
-    "_name": "ball",
+    "_name": "goalkeeper_center",
     "_objFlags": 0,
     "__editorExtras__": {
       "embeddedPlayerGroups": []
@@ -9,9 +9,9 @@
     "_native": "",
     "sample": 60,
     "speed": 1,
-    "wrapMode": 2,
+    "wrapMode": 1,
     "enableTrsBlending": false,
-    "_duration": 0.5166666666666667,
+    "_duration": 0.21666666666666667,
     "_hash": 500763545,
     "_tracks": [
       {
@@ -53,7 +53,7 @@
   },
   {
     "__type__": "cc.animation.HierarchyPath",
-    "path": "BallSprite"
+    "path": "KeeperSprite"
   },
   {
     "__type__": "cc.animation.ComponentPath",
@@ -69,40 +69,30 @@
     "__type__": "cc.ObjectCurve",
     "_times": [
       0,
-      0.08333333333333333,
-      0.16666666666666666,
-      0.25,
-      0.3333333333333333,
-      0.4166666666666667,
-      0.5
+      0.05,
+      0.1,
+      0.15,
+      0.2
     ],
     "_values": [
       {
-        "__uuid__": "7420e411-d395-4553-a2dd-b9f394d8b4c6@f9941",
+        "__uuid__": "29b37bd5-5b9d-43d0-99fc-12f830525a43@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "8807355e-67d7-46b9-8c5f-02b98e9b1d47@f9941",
+        "__uuid__": "f11f41cd-7dc2-444f-83f5-592c4122fe22@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "bcc47720-3e6f-4960-bb40-41fbeb0c781d@f9941",
+        "__uuid__": "69b71fed-870c-49ee-adcd-a1e3783d2df8@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "084cb23e-c8fe-49f0-88e4-bc193eceb62a@f9941",
+        "__uuid__": "84295a82-191c-4505-ab5e-6a64b37db103@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "8ae001d3-ad9c-4166-9839-11ff9c7feec1@f9941",
-        "__expectedType__": "cc.SpriteFrame"
-      },
-      {
-        "__uuid__": "58c007a6-92df-42c7-903a-d2329ad094dd@f9941",
-        "__expectedType__": "cc.SpriteFrame"
-      },
-      {
-        "__uuid__": "0827f76f-a7c4-4960-951d-2b6530ed19a8@f9941",
+        "__uuid__": "a00745eb-e7b6-4d84-82cf-022ff5af6460@f9941",
         "__expectedType__": "cc.SpriteFrame"
       }
     ]

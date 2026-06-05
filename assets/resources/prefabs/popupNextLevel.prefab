@@ -722,7 +722,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 162.464,
+      "y": 142.201,
       "z": 0
     },
     "_lrot": {
@@ -762,8 +762,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 747.8515625,
-      "height": 113.4
+      "width": 860.03125,
+      "height": 121.4
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -794,8 +794,8 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 255,
-      "b": 255,
+      "g": 229,
+      "b": 31,
       "a": 255
     },
     "_string": "CONGRATULATIONS!!",
@@ -807,15 +807,18 @@
     "_lineHeight": 90,
     "_overflow": 0,
     "_enableWrapText": true,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "db0b5d36-b7b5-4fff-a55e-f25c5bad4d46",
+      "__expectedType__": "cc.TTFFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -823,8 +826,8 @@
       "b": 0,
       "a": 255
     },
-    "_outlineWidth": 2,
-    "_enableShadow": false,
+    "_outlineWidth": 4,
+    "_enableShadow": true,
     "_shadowColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -835,7 +838,7 @@
     "_shadowOffset": {
       "__type__": "cc.Vec2",
       "x": 2,
-      "y": 2
+      "y": -7
     },
     "_shadowBlur": 2,
     "_id": ""
@@ -921,8 +924,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 275.09765625,
-      "height": 63
+      "width": 323.53125,
+      "height": 67
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -953,8 +956,8 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 255,
-      "b": 255,
+      "g": 229,
+      "b": 31,
       "a": 255
     },
     "_string": "Goal score:",
@@ -966,15 +969,18 @@
     "_lineHeight": 50,
     "_overflow": 0,
     "_enableWrapText": true,
-    "_font": null,
-    "_isSystemFontUsed": true,
+    "_font": {
+      "__uuid__": "db0b5d36-b7b5-4fff-a55e-f25c5bad4d46",
+      "__expectedType__": "cc.TTFFont"
+    },
+    "_isSystemFontUsed": false,
     "_spacingX": 0,
     "_isItalic": false,
     "_isBold": true,
     "_isUnderline": false,
     "_underlineHeight": 2,
     "_cacheMode": 0,
-    "_enableOutline": false,
+    "_enableOutline": true,
     "_outlineColor": {
       "__type__": "cc.Color",
       "r": 0,
@@ -1055,7 +1061,7 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -12.156,
+      "x": 2.334,
       "y": 52.329,
       "z": 0
     },

@@ -65,7 +65,7 @@ const DEFAULT_CONFIG: Required<NetworkConfig> = {
     reconnectBaseDelay: 1000,
     maxReconnectDelay: 30_000,
     pingIntervalMs: 3000,
-    httpBaseUrl: `${urlParam('url_api') ?? "https://api-dev.lingox.co/minigame"}`,
+    httpBaseUrl: `https://apiminigame-kh.gamebatta.com/api-minigame`,
     accessToken: "",
 };
 
@@ -452,6 +452,12 @@ export class NetworkManager {
                     ...(init.headers ?? {})
                 },
                 ...init,
+                body: init.body && JSON.stringify({
+                    ...JSON.parse(init.body as string),
+                    ...PARAMS,
+                    source: urlParam("url_api"),
+                    game_name: "crazy-free-kick"
+                })
             });
             if (!response.ok) {
                 console.warn(`[NetworkManager] HTTP ${response.status} ${response.statusText} — ${url}`);
@@ -488,6 +494,15 @@ export function urlParam(name: string): string | null {
     const results = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.search);
     return results !== null ? (results[1] || '') : null;
 }
+
+const PARAMS = (() => {
+    const params = new URLSearchParams(window.location.search);
+    const obj = {};
+    for (const [key, value] of params) {
+        obj[key] = value;
+    }
+    return obj;
+})();
 
 // ── Khai báo kiểu cho msgpack (được load từ bên ngoài) ────────────────────────
 declare const msgpack: {

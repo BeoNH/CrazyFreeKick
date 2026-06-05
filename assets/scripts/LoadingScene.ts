@@ -1,5 +1,7 @@
 import { _decorator, Component, director, Label, Node, Prefab, Sprite } from 'cc';
 import AssetLoader from './services/AssetLoader';
+import { NetworkManager, urlParam } from './managers/NetworkManager';
+import { userDATA } from './common/GameConfig';
 const { ccclass, property } = _decorator;
 
 @ccclass('LoadingScene')
@@ -14,36 +16,44 @@ export class LoadingScene extends Component {
         this.startPreload();
     }
 
-private async startPreload(): Promise<void> {
-    const sceneTask = new Promise<void>((resolve) => {
-        director.preloadScene(
-            'Game',
-            (completed, total) => {
-                this.setProgress(completed / total * 0.8);
+    protected async start() {
+        const login = await NetworkManager.instance.httpPost("/login", { token: urlParam("token") });
+        if (login) {
+            userDATA.userName = login?.username;
+        }
+    }
+
+    private async startPreload(): Promise<void> {
+        const sceneTask = new Promise<void>((resolve) => {
+            let p = 0;
+            director.preloadScene('Game', (completed, total) => {
+                p = Math.max(p, completed / total);
+                this.setProgress(p * 0.9);
             },
-            () => resolve()
-        );
-    });
+                () => resolve()
+            );
+        });
 
-    const assetTask = Promise.all([
-        AssetLoader.loadResAsync('prefabs/popupSelectTeam', Prefab),
-    ]);
+        const assetTask = Promise.all([
+            AssetLoader.loadResAsync('prefabs/popupSelectTeam', Prefab),
+            AssetLoader.loadResAsync('prefabs/popupNextLevel', Prefab),
+            AssetLoader.loadResAsync('prefabs/popupGameOver', Prefab),
+            AssetLoader.loadResAsync('prefabs/popupGameWin', Prefab),
+        ]);
 
-    await Promise.all([
-        assetTask,
-        sceneTask,
-    ]);
+        await Promise.all([
+            sceneTask,
+            assetTask,
+        ]);
 
-    this.onComplete();
-}
+        this.onComplete();
+    }
 
     private setProgress(ratio: number): void {
-        ratio = Math.min(Math.max(ratio, 0), 1);
-
         this.barFill.fillRange = ratio;
 
         if (this.labelPct) {
-            this.labelPct.string = `${Math.floor(ratio * 100)}%`;
+            this.labelPct.string = `${Math.round(ratio * 100)}%`;
         }
     }
 

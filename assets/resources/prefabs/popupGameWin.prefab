@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.Prefab",
-    "_name": "popupGameOver",
+    "_name": "popupGameWin",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_native": "",
@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "popupGameOver",
+    "_name": "popupGameWin",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": null,
@@ -454,7 +454,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "a2b90bcf-a165-41e2-952c-87d3db6a932e@f9941",
+      "__uuid__": "4ad592c4-fbe0-4ddb-bbf2-ae2f6d1c1a90@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -515,8 +515,8 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 322.881,
-      "y": -184.087,
+      "x": 326.141,
+      "y": -128.832,
       "z": 0
     },
     "_lrot": {
@@ -700,7 +700,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "game_over",
+    "_name": "you_win",
     "_objFlags": 0,
     "__editorExtras__": {},
     "_parent": {
@@ -722,7 +722,7 @@
     "_lpos": {
       "__type__": "cc.Vec3",
       "x": 0,
-      "y": 124.208,
+      "y": 172.808,
       "z": 0
     },
     "_lrot": {
@@ -762,8 +762,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 786,
-      "height": 148
+      "width": 778,
+      "height": 158
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -774,7 +774,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "66QQx94JNP3Lh/SHI6JVXM"
+    "fileId": "19npP3+YJEWKNpuYu9LXgV"
   },
   {
     "__type__": "cc.Sprite",
@@ -799,7 +799,7 @@
       "a": 255
     },
     "_spriteFrame": {
-      "__uuid__": "d903f337-de26-4d50-8a59-f4e972004176@f9941",
+      "__uuid__": "9decf6af-1cfa-46a8-a166-8345b478bc99@f9941",
       "__expectedType__": "cc.SpriteFrame"
     },
     "_type": 0,
@@ -819,7 +819,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "90dm6km6BKiIRm/U26aRNP"
+    "fileId": "2cl3vNUSxEQ4lZce3czsz/"
   },
   {
     "__type__": "cc.PrefabInfo",
@@ -829,7 +829,7 @@
     "asset": {
       "__id__": 0
     },
-    "fileId": "4bjsJL+ZBJeISdYQMTlT7S",
+    "fileId": "a33jRa5FhHKbfagStZ3k0G",
     "instance": null,
     "targetOverrides": null,
     "nestedPrefabInstanceRoots": null
@@ -857,16 +857,16 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": -60,
-      "y": 0,
+      "x": -229.264,
+      "y": -77.916,
       "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
       "x": 0,
       "y": 0,
-      "z": 0,
-      "w": 1
+      "z": -0.12764453294850833,
+      "w": 0.9918199802425626
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -880,7 +880,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": 0
+      "z": -14.667
     },
     "_id": ""
   },
@@ -930,8 +930,8 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 229,
-      "b": 31,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_string": "Score:",
@@ -1022,16 +1022,16 @@
     },
     "_lpos": {
       "__type__": "cc.Vec3",
-      "x": 37.552,
-      "y": 0,
+      "x": -137.474,
+      "y": -106.457,
       "z": 0
     },
     "_lrot": {
       "__type__": "cc.Quat",
       "x": 0,
       "y": 0,
-      "z": 0,
-      "w": 1
+      "z": -0.12764453294850833,
+      "w": 0.9918199802425626
     },
     "_lscale": {
       "__type__": "cc.Vec3",
@@ -1045,7 +1045,7 @@
       "__type__": "cc.Vec3",
       "x": 0,
       "y": 0,
-      "z": 0
+      "z": -14.667
     },
     "_id": ""
   },
@@ -1095,8 +1095,8 @@
     "_color": {
       "__type__": "cc.Color",
       "r": 255,
-      "g": 229,
-      "b": 31,
+      "g": 255,
+      "b": 255,
       "a": 255
     },
     "_string": "0000",
@@ -1326,7 +1326,7 @@
     "fileId": "d5irdDKQpNdpW2BfDKKUiB"
   },
   {
-    "__type__": "7d9d6QCHExCQKX6XskJ10qK",
+    "__type__": "c2ecd/8OclF2pBfd2cHVjzp",
     "_name": "",
     "_objFlags": 0,
     "__editorExtras__": {},
@@ -1355,7 +1355,7 @@
   },
   {
     "__type__": "cc.CompPrefabInfo",
-    "fileId": "a855EFOx9EK6MgjUAWdoun"
+    "fileId": "96kfK3miFGtp4ctPeXKmLD"
   },
   {
     "__type__": "cc.PrefabInfo",

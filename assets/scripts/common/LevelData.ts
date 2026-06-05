@@ -38,7 +38,7 @@ export const BALL_POS_GRID: IPosition[][] = [
 
 const P0: IPosition = { x: -300, y: -125 };
 const P1: IPosition = { x:  -20, y: -125 };
-const P2: IPosition = { x:  250, y: -125 };
+const P2: IPosition = { x:  245, y: -125 };
 
 // playerPosGrid[level][kick]
 export const PLAYER_POS_GRID: IPosition[][] = [

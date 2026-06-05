@@ -5,6 +5,7 @@ import { ON_KICK_READY } from '../common/GameEvents';
 import { RANGE_HEIGHT, RANGE_WIDTH, SHOT_INDICATOR_SPEED_DECREASE, SHOT_INDICATOR_SPEED_DEFAULT } from '../common/GameConfig';
 import { Logger } from '../utils/Logger';
 import GameManager from '../managers/GameManager';
+import { AudioController } from './AudioController';
 
 // ============================================================
 // ShotIndicatorCtrl — Thanh chỉ báo cú sút (2 bước bấm)
@@ -66,24 +67,17 @@ export default class ShotIndicatorCtrl extends Component {
     }
 
     // ────────────────────────────────────────────
-    // Public
+    // Private — Event handlers
     // ────────────────────────────────────────────
 
-    /** Gọi khi bắt đầu level mới để cập nhật tốc độ */
-    public setLevel(levelIndex: number): void {
+    private onKickReady(levelIndex: number): void {
+        this.startStep0();
         this.duration = Math.max(300, SHOT_INDICATOR_SPEED_DEFAULT - SHOT_INDICATOR_SPEED_DECREASE * levelIndex,);
         Logger.info(TAG, `level ${levelIndex} → duration ${this.duration}ms`);
     }
 
-    // ────────────────────────────────────────────
-    // Private — Event handlers
-    // ────────────────────────────────────────────
-
-    private onKickReady(): void {
-        this.startStep0();
-    }
-
     private _onTap(): void {
+        AudioController.instance.stopIndicator();
         if (this.step === 0) {
             this._onTapHorizontal();
         } else if (this.step === 1) {
@@ -126,7 +120,7 @@ export default class ShotIndicatorCtrl extends Component {
         const t = (arrowX + H_BAR_HALF) / (H_BAR_HALF * 2);
         this.col = Math.min(RANGE_WIDTH - 1, Math.floor(t * RANGE_WIDTH));
 
-        Logger.info(TAG, `tap H → col=${this.col} (arrowX=${arrowX.toFixed(1)})`);
+        // Logger.info(TAG, `tap H → col=${this.col} (arrowX=${arrowX.toFixed(1)})`);
 
         // Chuyển sang step 1
         this.startStep1();
@@ -164,7 +158,7 @@ export default class ShotIndicatorCtrl extends Component {
         const t = 1 - (arrowY + V_BAR_HALF) / (V_BAR_HALF * 2);
         const row = Math.min(RANGE_HEIGHT - 1, Math.floor(t * RANGE_HEIGHT));
 
-        Logger.info(TAG, `tap V → row=${row} (arrowY=${arrowY.toFixed(1)})`);
+        // Logger.info(TAG, `tap V → row=${row} (arrowY=${arrowY.toFixed(1)})`);
 
         this.step = -1;
         this.setVisible(false);

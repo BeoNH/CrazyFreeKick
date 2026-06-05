@@ -1,5 +1,6 @@
 import { _decorator, Component, Node, tween, UIOpacity } from 'cc';
 import { popupSelectTeam } from './components/Popup/popupSelectTeam';
+import { AudioController } from './components/AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('GameScene')
@@ -20,10 +21,14 @@ export class GameScene extends Component {
 
     protected onLoad(): void {
         GameScene._instance = this;
+    }
+    
+    protected start(): void {
         this.openMenu();
     }
 
     openMenu() {
+        AudioController.instance.enterMenu();
         this.GamePanel.active = false;
         this.MenuPanel.active = true;
 
@@ -38,11 +43,14 @@ export class GameScene extends Component {
     }
 
     openGame() {
+        AudioController.instance.enterGame();
+        this.GamePanel.active = true;
+        this.MenuPanel.active = false;
+    }
+    
+    onSelectTeam(){
+        AudioController.instance.click();
         popupSelectTeam.show()
-            .then(() => {
-                this.GamePanel.active = true;
-                this.MenuPanel.active = false;
-            })
     }
 }
 

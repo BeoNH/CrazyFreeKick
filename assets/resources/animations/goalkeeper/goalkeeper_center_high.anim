@@ -1,7 +1,7 @@
 [
   {
     "__type__": "cc.AnimationClip",
-    "_name": "ball",
+    "_name": "goalkeeper_center_high",
     "_objFlags": 0,
     "__editorExtras__": {
       "embeddedPlayerGroups": []
@@ -9,9 +9,9 @@
     "_native": "",
     "sample": 60,
     "speed": 1,
-    "wrapMode": 2,
+    "wrapMode": 1,
     "enableTrsBlending": false,
-    "_duration": 0.5166666666666667,
+    "_duration": 0.4666666666666667,
     "_hash": 500763545,
     "_tracks": [
       {
@@ -53,7 +53,7 @@
   },
   {
     "__type__": "cc.animation.HierarchyPath",
-    "path": "BallSprite"
+    "path": "KeeperSprite"
   },
   {
     "__type__": "cc.animation.ComponentPath",
@@ -69,40 +69,55 @@
     "__type__": "cc.ObjectCurve",
     "_times": [
       0,
-      0.08333333333333333,
-      0.16666666666666666,
+      0.05,
+      0.1,
+      0.15,
+      0.2,
       0.25,
-      0.3333333333333333,
-      0.4166666666666667,
-      0.5
+      0.3,
+      0.35,
+      0.4,
+      0.45
     ],
     "_values": [
       {
-        "__uuid__": "7420e411-d395-4553-a2dd-b9f394d8b4c6@f9941",
+        "__uuid__": "6743ad7b-243f-4808-8a9c-96af9b649440@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "8807355e-67d7-46b9-8c5f-02b98e9b1d47@f9941",
+        "__uuid__": "53b397cd-1bce-497e-8f24-ac5c94c7583b@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "bcc47720-3e6f-4960-bb40-41fbeb0c781d@f9941",
+        "__uuid__": "c8507003-0841-4059-954f-e96d7e17b03e@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "084cb23e-c8fe-49f0-88e4-bc193eceb62a@f9941",
+        "__uuid__": "217cc4d4-3c49-4923-849c-50f0d242a44c@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "8ae001d3-ad9c-4166-9839-11ff9c7feec1@f9941",
+        "__uuid__": "f43856fa-114a-4e9f-b645-d5b3f0500ec3@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "58c007a6-92df-42c7-903a-d2329ad094dd@f9941",
+        "__uuid__": "0f96f997-b6da-42b5-b3af-a5d5be0f637e@f9941",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "0827f76f-a7c4-4960-951d-2b6530ed19a8@f9941",
+        "__uuid__": "5089f25a-b576-4594-9ab4-88e499ecc890@f9941",
+        "__expectedType__": "cc.SpriteFrame"
+      },
+      {
+        "__uuid__": "4c33d48c-ab12-4239-b54c-04550bc2173a@f9941",
+        "__expectedType__": "cc.SpriteFrame"
+      },
+      {
+        "__uuid__": "f5557583-7f9a-45ca-af6e-a78f0e56151d@f9941",
+        "__expectedType__": "cc.SpriteFrame"
+      },
+      {
+        "__uuid__": "50da11b9-fe3f-4820-b96a-1a6cc251a1a2@f9941",
         "__expectedType__": "cc.SpriteFrame"
       }
     ]

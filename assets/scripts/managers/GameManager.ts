@@ -1,4 +1,4 @@
-import { _decorator, Component, Node, UITransform, Vec3 } from 'cc';
+import { _decorator, Animation, Component, Node, UITransform, Vec3 } from 'cc';
 import { BONUS_DECREASE, BONUS_START, KEEPER_ACTION_INFO, KeeperAction, NUM_LEVEL, NUM_SAVE, RANGE_HEIGHT, RANGE_WIDTH, TeamIndex, TEAM_KEYS, WALL_WIDTH, WALL_HEIGHT, IPosition, IShotResult, } from '../common/GameConfig';
 import { getBallPosition, getLevelInfo, getPlayerPosIndex, getPlayerPosition, getWallData, KEEPER_COL_CONFIG, } from '../common/LevelData';
 import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT, ON_EXIT_GAME, ON_GAME_OVER, ON_GAME_WIN, ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_PLAYER_KICK_FRAME, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_CONFIRMED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
@@ -6,6 +6,7 @@ import BroadcastReceiver from '../common/BroadcastReceiver';
 import { Logger } from '../utils/Logger';
 import { popupNextLevel } from '../components/Popup/popupNextLevel';
 import { popupGameOver } from '../components/Popup/popupGameOver';
+import { AudioController } from '../components/AudioController';
 
 const { ccclass, property } = _decorator;
 
@@ -23,6 +24,10 @@ export default class GameManager extends Component {
     @property({ type: Node, tooltip: 'Vị trí bóng bay đến' })
     private MATRIX: Node = null!;
 
+    @property({ type: Animation, tooltip: 'Hoạt ảnh khán giả' })
+    private crowdAnim: Animation = null!;
+    
+
     // ── Session state ──────────────────────────
     private gScore: number = 0;
     private gBonus: number = BONUS_START;
@@ -34,11 +39,11 @@ export default class GameManager extends Component {
     private gTeamKey: string = TEAM_KEYS[TeamIndex.ARGENTINA];
     private gTotalTimeStart: number = 0;
     private gShotResult: IShotResult | null = null;
-    
+
     // ── Frame state ────────────────────────────
     private isReadyToKick: boolean = false;
     private isBonusRunning: boolean = false;
-    
+
     // ── Shot result state ──────────────────────
     private ballPos: IPosition;
 
@@ -60,18 +65,12 @@ export default class GameManager extends Component {
 
     onLoad(): void {
         GameManager._instance = this;
-
-        BroadcastReceiver.register(ON_EXIT_GAME, this.onExitGame.bind(this), this);
-    }
-
-    onDestroy(): void {
-        BroadcastReceiver.unRegisterByTarget(this);
     }
 
     update(dt: number): void {
         if (!this.isBonusRunning) return;
         if (this.gBonus >= BONUS_DECREASE) {
-            this.gBonus -= BONUS_DECREASE;
+            this.gBonus = Math.max(Math.floor(this.gBonus - BONUS_DECREASE), 1);
             BroadcastReceiver.send(ON_BONUS_CHANGED, { bonus: this.gBonus });
         }
     }
@@ -152,7 +151,7 @@ export default class GameManager extends Component {
         this.isBonusRunning = true;
         this.gShotResult = null;
         BroadcastReceiver.send(ON_BONUS_CHANGED, { bonus: this.gBonus });
-        BroadcastReceiver.send(ON_KICK_READY, null);
+        BroadcastReceiver.send(ON_KICK_READY, this.gLevelIndex);
     }
 
 
@@ -231,7 +230,11 @@ export default class GameManager extends Component {
      */
     private calcKickTarget(col: number, row: number): { x: number; y: number } {
         const worldPos = this.MATRIX.getChildByPath(`${row}/${col}`).worldPosition.clone();
-        const { x, y } = this.MATRIX.getComponent(UITransform)!.convertToNodeSpaceAR(worldPos);
+        const nodePos = this.MATRIX.getComponent(UITransform)!.convertToNodeSpaceAR(worldPos);
+
+        const x = nodePos.x + (Math.random() * 60 - 30);
+        const y = nodePos.y + (Math.random() * 30);
+
         return { x, y };
     }
 
@@ -255,7 +258,7 @@ export default class GameManager extends Component {
         // Phát event để GoalKeeperCtrl nhảy
         const keeperInfo = KEEPER_ACTION_INFO[result.keeperTargetAction];
         if (keeperInfo) {
-            BroadcastReceiver.send(ON_KEEPER_JUMP, { keeperInfo });
+            BroadcastReceiver.send(ON_KEEPER_JUMP, keeperInfo);
         }
 
         // Phát event để WallCtrl nhảy (nếu có tường)
@@ -277,8 +280,10 @@ export default class GameManager extends Component {
         if (!result) return;
 
         if (result.ballHitKeeper || result.ballHitWall) {
+            AudioController.instance.missGoal();
             BroadcastReceiver.send(result.ballHitKeeper ? ON_SAVED : ON_WALL_HIT, null);
         } else if (result.keeperAction === KeeperAction.OUT) {
+            AudioController.instance.missGoal();
             BroadcastReceiver.send(ON_OUT, null);
         } else if (result.keeperTargetAction !== result.keeperAction) {
             // GOAL
@@ -287,7 +292,9 @@ export default class GameManager extends Component {
             BroadcastReceiver.send(ON_GOAL, { score: this.gScore, bonus: this.gBonus });
             BroadcastReceiver.send(ON_SCORE_CHANGED, { score: this.gScore });
             BroadcastReceiver.send(ON_GOALS_CHANGED, { scored: this.gGoalsScored, required: this.gGoalsRequired });
+            this.crowdAnim.play();
             BroadcastReceiver.send(ON_CROWD_EXULT, null);
+            AudioController.instance.goal();
         }
 
         this.gKicksLeft--;

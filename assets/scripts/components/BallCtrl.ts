@@ -5,6 +5,7 @@ import { ON_BALL_KICK, ON_KICK_SETUP } from '../common/GameEvents';
 import { BALL_FLIGHT_END, BALL_SCALE_MIN, BALL_SCALE_STEP, BALL_KEEPER_CHECK_SCALE, BALL_WALL_CHECK_SCALE, CANVAS_WIDTH, CANVAS_HEIGHT, STEP_SPEED_BALL, IPosition, } from '../common/GameConfig';
 import { Logger } from '../utils/Logger';
 import GameManager from '../managers/GameManager';
+import { AudioController } from './AudioController';
 
 // ============================================================
 // BallCtrl — Điều khiển bóng
@@ -23,22 +24,28 @@ const TAG = 'BallCtrl';
 @ccclass('BallCtrl')
 export default class BallCtrl extends Component {
 
+    @property({ type: UIOpacity, tooltip: 'Độ mờ bóng xoáy' })
+    private opacity: UIOpacity = null!;
+
     @property({ type: Animation, tooltip: 'Hoạt ảnh bóng xoáy' })
     private anim: Animation = null!;
 
+    @property({ tooltip: 'Tốc độ xoay bóng (độ/giây)' })
+    private spinSpeed: number = 360;
+
     // ── Flight state ───────────────────────────
     private isFlying: boolean = false;
-    private flightStep: number = 0;
+    private flightElapsed: number = 0;   // thời gian đã bay (giây)
+    private flightDuration: number = 0.45;
 
     // ── Bezier curve ───────────────────────────
     private curveStart: { x: number; y: number } = { x: 0, y: 0 };
     private curveMid: { x: number; y: number } = { x: 0, y: 0 };
     private curveEnd: { x: number; y: number } = { x: 0, y: 0 };
 
-    // ── Collision check flags (chỉ trigger 1 lần mỗi lượt) ──
+    // ── Collision flags ────────────────────────
     private hitKeeper: boolean = false;
     private hitWall: boolean = false;
-    private numWalls: number = 0;
 
     // ────────────────────────────────────────────
     // Lifecycle
@@ -56,138 +63,158 @@ export default class BallCtrl extends Component {
     update(dt: number): void {
         if (!this.isFlying) return;
 
-        this.flightStep += STEP_SPEED_BALL;
-        this.node.angle -= 5;   // xoay bóng
+        this.flightElapsed += dt;
 
-        if (this.flightStep >= BALL_FLIGHT_END) {
-            this.flightStep = 0;
-            this.isFlying = false;
-            GameManager.instance.onBallLanded();
-            return;
-        }
+        // t ∈ [0, 1] chuẩn, clamp để tránh overshoot
+        const rawT = Math.min(this.flightElapsed / this.flightDuration, 1);
 
-        // Quadratic Bezier: t ∈ [0,1]
-        const t = this.easeOutCubic(this.flightStep, 0, 1, BALL_FLIGHT_END);
+        // Easing: bóng phóng nhanh rồi giảm tốc khi vào khung
+        const t = this.easeOutQuart(rawT);
         const pos = this.bezierPoint(t);
-
         this.node.setPosition(pos.x, pos.y, 0);
 
-        // Scale thu nhỏ theo phối cảnh
-        const sc = this.node.scale;
-        if (sc.x >= BALL_SCALE_MIN) {
-            const newS = sc.x - BALL_SCALE_STEP;
-            this.node.setScale(newS, newS, 1);
+        const sc = this.scalePerspective(rawT);
+        this.node.setScale(sc, sc, 1);
+
+        this.node.angle -= this.spinSpeed * dt;
+
+        // ── Kết thúc lượt bay ──────────────────
+        if (rawT >= 1) {
+            this.isFlying = false;
+            this.flightElapsed = 0;
+            this.onFlightFinished();
         }
     }
 
     // ────────────────────────────────────────────
-    // Public API
+    // Private — Flight result
     // ────────────────────────────────────────────
 
-    // /** Bóng fade ra khi GOAL hoặc OUT */
-    // public fadeOut(): void {
-    //     tween(this.node)
-    //         .to(0.2, { scale: new Vec3(0, 0, 0) })
-    //         .call(() => { this.node.active = false; })
-    //         .start();
-    // }
+    private onFlightFinished(): void {
+        if (this.hitKeeper) {
+            this.bounce(true);
+        } else if (this.hitWall) {
+            this.bounce(false);
+        } else {
+            this.fadeOut();
+        }
+    }
 
-    // /** Bóng bị chặn — văng xuống dưới màn hình */
-    // public bounce(fromCjsX: number, isKeeperSave: boolean): void {
-    //     this.isFlying = false;
-    //     const goRight = fromCjsX < CANVAS_WIDTH / 2;
-    //     const duration = isKeeperSave ? 0.7 : 0.5;
+    public fadeOut(): void {
+        tween(this.node)
+            .parallel(
+                tween().to(0.25, { scale: new Vec3(0.35, 0.35, 1) }, { easing: 'quadOut' }),
+                tween(this.opacity).to(0.25, { opacity: 0 }, { easing: 'quadIn' })
+            )
+            .call(() => GameManager.instance.onBallLanded())
+            .start();
+    }
 
-    //     const curPos = this.node.position;
-    //     // Cocos Y xuống = giá trị âm → CANVAS_HEIGHT / 2 bên dưới = -CANVAS_HEIGHT / 2 trong Cocos
-    //     const targetY = -(CANVAS_HEIGHT / 2) - 50;
+    private bounce(isKeeperSave: boolean): void {
+        const curPos = this.node.position;
+        const goRight = curPos.x < 0;
+        const duration = isKeeperSave ? 0.55 : 0.4;
+        const targetY = -(CANVAS_HEIGHT / 2) - 60;
+        const offsetX = curPos.x + (goRight ? 120 : -120);
 
-    //     tween(this.node)
-    //         .to(duration, {
-    //             position: new Vec3(curPos.x + (goRight ? 100 : -100), targetY, 0,),
-    //         })
-    //         .call(() => {
-    //             // GameManager.onBallLanded(missed=true nếu wall, false nếu keeper)
-    //         })
-    //         .start();
-    // }
+        tween(this.node)
+            .to(duration * 0.35, {
+                position: new Vec3(curPos.x + (goRight ? 30 : -30), curPos.y + 30, 0),
+                scale: new Vec3(0.75, 0.75, 1),
+            }, { easing: 'quadOut' })
+            .to(duration * 0.6, {
+                position: new Vec3(offsetX, targetY, 0)
+            }, { easing: 'quadIn' })
+            .call(() => GameManager.instance.onBallLanded())
+            .start();
+    }
 
     // ────────────────────────────────────────────
     // Private — Event handlers
     // ────────────────────────────────────────────
 
-    /** Reposition bóng về vị trí ban đầu của lượt sút */
     private _onBallSetup(data: any): void {
         const ballPos = data.ballPos as IPosition;
 
-        this.node.getComponent(UIOpacity).opacity = 255;
+        this.node.getComponent(UIOpacity)!.opacity = 255;
         this.node.setPosition(ballPos.x, ballPos.y, 0);
         this.node.setScale(1, 1, 1);
         this.node.angle = 0;
 
         this.isFlying = false;
-        this.flightStep = 0;
+        this.flightElapsed = 0;
         this.hitKeeper = false;
         this.hitWall = false;
 
         if (this.anim) this.anim.stop();
     }
 
-    /** Bóng bắt đầu bay */
-    private _onBallKick(data: { targetPos: IPosition; hitKeeper: boolean; hitWall: boolean }): void {
+    private _onBallKick(data: { targetPos: IPosition; hitKeeper: boolean; hitWall: boolean; }): void {
         const { targetPos, hitKeeper, hitWall } = data;
         this.hitKeeper = hitKeeper;
         this.hitWall = hitWall;
 
         const startPos = this.node.position.clone();
-
         this.curveStart = { x: startPos.x, y: startPos.y };
         this.curveEnd = { x: targetPos.x, y: targetPos.y };
         this.curveMid = this.calcMidPoint(this.curveStart, this.curveEnd);
 
-        this.flightStep = 0;
+        this.flightElapsed = 0;
         this.isFlying = true;
 
         if (this.anim) this.anim.play();
 
-        Logger.info(TAG, 'ball kicked → target', targetPos);
+        AudioController.instance.kick();
+        // Logger.info(TAG, 'ball kicked → target', targetPos);
     }
 
     // ────────────────────────────────────────────
-    // Private — Bezier & Easing
+    // Private — Bezier & Math
     // ────────────────────────────────────────────
 
-    /** Quadratic Bezier point tại t */
+    /**
+     * Scale theo quỹ đạo: bắt đầu = 1.0, đỉnh cung ~0.85 (bay ra xa),
+     */
+    private scalePerspective(t: number): number {
+        const scaleStart = 1.0;
+        const scaleEnd = 0.7;
+        const eased = t * t;
+        return scaleStart + (scaleEnd - scaleStart) * eased;
+    }
+
+
     private bezierPoint(t: number): { x: number; y: number } {
         const inv = 1 - t;
-        const x = inv * inv * this.curveStart.x
-            + 2 * inv * t * this.curveMid.x
-            + t * t * this.curveEnd.x;
-        const y = inv * inv * this.curveStart.y
-            + 2 * inv * t * this.curveMid.y
-            + t * t * this.curveEnd.y;
-        return { x, y };
+        return {
+            x: inv * inv * this.curveStart.x + 2 * inv * t * this.curveMid.x + t * t * this.curveEnd.x,
+            y: inv * inv * this.curveStart.y + 2 * inv * t * this.curveMid.y + t * t * this.curveEnd.y,
+        };
     }
 
-    private easeOutCubic(t: number, start: number, change: number, duration: number): number {
-        return change * (Math.pow(t / duration - 1, 3) + 1) + start;
+    /** easeOutQuart: f(t) = 1 - (1-t)^4  — mượt, bóng nhanh ban đầu */
+    private easeOutQuart(t: number): number {
+        return 1 - Math.pow(1 - t, 4);
     }
 
     /**
-     * Tính điểm giữa Bezier ngẫu nhiên (tạo cảm giác xoáy bóng).
-     * Tương đương CBall._calculateMidPoint trong file gốc.
+     * Điểm giữa Bezier: dùng tỉ lệ khoảng cách thay vì px cứng.
+     * curveBulge = 0.35 → cung phình 35% tổng khoảng cách.
      */
-    private calcMidPoint(start: { x: number; y: number }, end: { x: number; y: number },): { x: number; y: number } {
-        const rand = Math.floor(Math.random() * 100) + 20;
+    private calcMidPoint(
+        start: { x: number; y: number },
+        end: { x: number; y: number },
+    ): { x: number; y: number } {
+        const rand = Math.floor(Math.random() * 80) + 20;
         const midX = (start.x + end.x) / 2;
-        const midY = (start.y + end.y) / 2 + 100;
+        const midY = (start.y + end.y) / 2 + 50;
 
         if (end.x < 0) {
             return { x: midX - rand, y: midY };
         } else if (end.x > 0) {
             return { x: midX + rand, y: midY };
         } else {
-            return { x: midX + (Math.random() < 0.5 ? -rand : rand), y: midY };
+            const sign = Math.random() < 0.5 ? -1 : 1;
+            return { x: midX + sign * rand, y: midY };
         }
     }
 }

@@ -2,6 +2,7 @@ import { _decorator, Component, instantiate, Node, Prefab } from 'cc';
 import Popup from '../../common/Popup';
 import AssetLoader from '../../services/AssetLoader';
 import GameManager from '../../managers/GameManager';
+import { AudioController } from '../AudioController';
 const { ccclass, property } = _decorator;
 
 @ccclass('popupNextLevel')
@@ -29,6 +30,7 @@ export class popupNextLevel extends Popup {
     }
 
     onNextLevel(){
+        AudioController.instance.click();
         GameManager.instance.startNextLevel();
         this.hide();
     }
