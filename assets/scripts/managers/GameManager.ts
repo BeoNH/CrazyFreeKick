@@ -75,10 +75,10 @@ export default class GameManager extends Component {
         }
     }
 
-    protected start(): void {
-        // giả lập game mới
-        this.startGame(TEAM_KEYS[TeamIndex.BRAZIL]);
-    }
+    // protected start(): void {
+    //     // giả lập game mới
+    //     this.startGame(TEAM_KEYS[TeamIndex.BRAZIL]);
+    // }
 
     // ────────────────────────────────────────────
     // Public API — gọi từ UIManager

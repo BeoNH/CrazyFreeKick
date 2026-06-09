@@ -73,10 +73,10 @@ export default class BallCtrl extends Component {
         const pos = this.bezierPoint(t);
         this.node.setPosition(pos.x, pos.y, 0);
 
-        const sc = this.scalePerspective(rawT);
+        const sc = Math.max(1 - t, 0.6);
         this.node.setScale(sc, sc, 1);
 
-        this.node.angle -= this.spinSpeed * dt;
+        // this.node.angle -= this.spinSpeed * dt;
 
         // ── Kết thúc lượt bay ──────────────────
         if (rawT >= 1) {
@@ -101,11 +101,7 @@ export default class BallCtrl extends Component {
     }
 
     public fadeOut(): void {
-        tween(this.node)
-            .parallel(
-                tween().to(0.25, { scale: new Vec3(0.35, 0.35, 1) }, { easing: 'quadOut' }),
-                tween(this.opacity).to(0.25, { opacity: 0 }, { easing: 'quadIn' })
-            )
+        tween(this.opacity).to(0.25, { opacity: 0 }, { easing: 'quadIn' })
             .call(() => GameManager.instance.onBallLanded())
             .start();
     }
@@ -136,7 +132,7 @@ export default class BallCtrl extends Component {
     private _onBallSetup(data: any): void {
         const ballPos = data.ballPos as IPosition;
 
-        this.node.getComponent(UIOpacity)!.opacity = 255;
+        this.opacity.opacity = 255;
         this.node.setPosition(ballPos.x, ballPos.y, 0);
         this.node.setScale(1, 1, 1);
         this.node.angle = 0;
@@ -171,17 +167,6 @@ export default class BallCtrl extends Component {
     // ────────────────────────────────────────────
     // Private — Bezier & Math
     // ────────────────────────────────────────────
-
-    /**
-     * Scale theo quỹ đạo: bắt đầu = 1.0, đỉnh cung ~0.85 (bay ra xa),
-     */
-    private scalePerspective(t: number): number {
-        const scaleStart = 1.0;
-        const scaleEnd = 0.7;
-        const eased = t * t;
-        return scaleStart + (scaleEnd - scaleStart) * eased;
-    }
-
 
     private bezierPoint(t: number): { x: number; y: number } {
         const inv = 1 - t;
