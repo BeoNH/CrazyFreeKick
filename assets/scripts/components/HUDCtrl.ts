@@ -4,6 +4,7 @@ import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_BONUS_CHANGED, ON_GOAL, ON_GOALS_CHANGED, ON_KICKS_CHANGED, ON_OUT, ON_SAVED, ON_SCORE_CHANGED, ON_WALL_HIT, } from '../common/GameEvents';
 import { Logger } from '../utils/Logger';
 import GameManager from '../managers/GameManager';
+import { i18n } from '../i18n/LocalizationManager';
 
 // ============================================================
 // HUDCtrl — Hiển thị HUD trong game
@@ -56,13 +57,13 @@ export default class HUDCtrl extends Component {
 
     private _onScoreChanged(data: { score: number }): void {
         if (this.scoreLabel) {
-            this.scoreLabel.string = 'SCORE: ' + String(data.score);
+            this.scoreLabel.string = i18n.t(`score`) + " " + String(data.score);
         }
     }
 
     private _onBonusChanged(data: { bonus: number }): void {
         if (this.bonusLabel) {
-            this.bonusLabel.string = 'BONUS x ' + String(data.bonus);
+            this.bonusLabel.string = i18n.t(`bonus`) + " x " + String(data.bonus);
         }
     }
 

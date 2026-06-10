@@ -120,6 +120,11 @@ export enum TeamIndex {
     ENGLAND = 3,
     ITALY = 4,
     FRANCE = 5,
+    AMERICA = 6,
+    CANADA = 7,
+    IRAQ = 8,
+    MEXICO = 9,
+    QATAR = 10,
 }
 
 export const TEAM_KEYS: Record<TeamIndex, string> = {
@@ -129,15 +134,11 @@ export const TEAM_KEYS: Record<TeamIndex, string> = {
     [TeamIndex.ENGLAND]: 'england',
     [TeamIndex.ITALY]: 'italy',
     [TeamIndex.FRANCE]: 'france',
-};
-
-export const TEAM_NAMES: Record<TeamIndex, string> = {
-    [TeamIndex.ARGENTINA]: 'ARGENTINA',
-    [TeamIndex.BRAZIL]: 'BRAZIL',
-    [TeamIndex.GERMANY]: 'GERMANY',
-    [TeamIndex.ENGLAND]: 'ENGLAND',
-    [TeamIndex.ITALY]: 'ITALY',
-    [TeamIndex.FRANCE]: 'FRANCE',
+    [TeamIndex.AMERICA]: 'america',
+    [TeamIndex.CANADA]: 'canada',
+    [TeamIndex.IRAQ]: 'iraq',
+    [TeamIndex.MEXICO]: 'mexico',
+    [TeamIndex.QATAR]: 'qatar',
 };
 
 export const KEEPER_ACTION_INFO: Record<KeeperAction, IKeeperActionInfo | null> = {

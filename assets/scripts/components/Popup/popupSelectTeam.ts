@@ -1,8 +1,7 @@
 import { _decorator, Animation, instantiate, Label, Prefab, resources, Toggle } from 'cc';
 import Popup from '../../common/Popup';
 import AssetLoader from '../../services/AssetLoader';
-import { TEAM_KEYS, TEAM_NAMES, TeamIndex } from '../../common/GameConfig';
-import { Logger } from '../../utils/Logger';
+import { TEAM_KEYS, TeamIndex } from '../../common/GameConfig';
 import GameManager from '../../managers/GameManager';
 import { GameScene } from '../../GameScene';
 import { AudioController } from '../AudioController';
@@ -44,7 +43,7 @@ export class popupSelectTeam extends Popup {
 
     private applyTeam(teamIndex: TeamIndex): void {
         this.currentTeamKey = TEAM_KEYS[teamIndex];
-        this.nameTeam.string = TEAM_NAMES[teamIndex];
+        this.nameTeam.string = TEAM_KEYS[teamIndex].toUpperCase();
         const clipName = `${this.currentTeamKey}_idle`;
         if (this.anim?.getState(clipName)) {
             this.anim.play(clipName);

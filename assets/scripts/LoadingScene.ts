@@ -2,6 +2,7 @@ import { _decorator, Component, director, Label, Node, Prefab, Sprite } from 'cc
 import AssetLoader from './services/AssetLoader';
 import { NetworkManager, urlParam } from './managers/NetworkManager';
 import { userDATA } from './common/GameConfig';
+import { i18n } from './i18n/LocalizationManager';
 const { ccclass, property } = _decorator;
 
 @ccclass('LoadingScene')
@@ -14,6 +15,7 @@ export class LoadingScene extends Component {
 
     protected onLoad(): void {
         this.startPreload();
+        i18n.switchLanguage(urlParam("lang") ?? "en");
     }
 
     protected async start() {
