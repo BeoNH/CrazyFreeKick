@@ -2,10 +2,10 @@
 import { _decorator, Animation, Component, tween, UIOpacity, Vec3 } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_BALL_KICK, ON_KICK_SETUP } from '../common/GameEvents';
-import { BALL_FLIGHT_END, BALL_SCALE_MIN, BALL_SCALE_STEP, BALL_KEEPER_CHECK_SCALE, BALL_WALL_CHECK_SCALE, CANVAS_WIDTH, CANVAS_HEIGHT, STEP_SPEED_BALL, IPosition, } from '../common/GameConfig';
 import { Logger } from '../utils/Logger';
 import GameManager from '../managers/GameManager';
 import { AudioController } from './AudioController';
+import { CANVAS_HEIGHT, IPosition } from '../common/GameConfig';
 
 // ============================================================
 // BallCtrl — Điều khiển bóng

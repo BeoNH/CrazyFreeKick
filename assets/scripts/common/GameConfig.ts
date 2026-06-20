@@ -12,27 +12,10 @@ export const RANGE_HEIGHT = 4;
 
 // Số lượng
 export const NUM_LEVEL = 6;
-export const NUM_KICK = 5;
-
-// Vật lý bóng
-export const STEP_SPEED_BALL = 1;   // flightStep tăng mỗi frame
-export const BALL_FLIGHT_END = 40;    // flightStep kết thúc bay
-export const BALL_SCALE_MIN = 0.7;   // scale nhỏ nhất khi bóng bay xa
-export const BALL_SCALE_STEP = 0.03;  // giảm scale mỗi frame
-export const BALL_KEEPER_CHECK_SCALE = 0.7;   // scale để check keeper bắt
-export const BALL_WALL_CHECK_SCALE = 0.75;  // scale để check wall collision
 
 // Kích thước sprite (pixel, dùng cho spritesheet frame size)
-export const PLAYER_WIDTH = 160;
-export const PLAYER_HEIGHT = 239;
-export const GOALKEEPER_WIDTH = 91;
-export const GOALKEEPER_HEIGHT = 122;
 export const WALL_WIDTH = 92;
 export const WALL_HEIGHT = 160;
-export const BALL_WIDTH = 60;
-export const BALL_HEIGHT = 60;
-export const GOAL_WIDTH = 390;
-export const GOAL_HEIGHT = 145;
 
 // Vị trí thủ môn (tọa độ gốc CreateJS → cần convert sang Cocos)
 export const GOALKEEPER_POS = { x: 0, y: -45 };
@@ -44,9 +27,6 @@ export const SHOT_INDICATOR_SPEED_DECREASE = 100;   // giảm mỗi level
 // Bonus
 export const BONUS_START = 1000;
 export const BONUS_DECREASE = 1.8;    // giảm mỗi frame khi đang chờ input
-
-// Khoảng cách các slot wall (pixel)
-export const WALL_SLOT_OFFSET = WALL_WIDTH - 40;  // 79px mỗi người
 
 export const userDATA = {
     userName: ""

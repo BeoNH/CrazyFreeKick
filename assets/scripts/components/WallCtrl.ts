@@ -1,7 +1,7 @@
 import { _decorator, Animation, Component, Layout, Node } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_KICK_SETUP, ON_WALL_JUMP } from '../common/GameEvents';
-import { IWallData, WALL_SLOT_OFFSET } from '../common/GameConfig';
+import { IWallData } from '../common/GameConfig';
 import { Logger } from '../utils/Logger';
 
 // ============================================================
