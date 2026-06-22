@@ -1,8 +1,8 @@
 import { _decorator, Animation, Component, Layout, Node } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_KICK_SETUP, ON_WALL_JUMP } from '../common/GameEvents';
-import { IWallData } from '../common/GameConfig';
 import { Logger } from '../utils/Logger';
+import { IKickSetupPayload } from '../common/GameConfig';
 
 // ============================================================
 // WallCtrl — Quản lý tường người chắn (max 3 người)
@@ -39,8 +39,8 @@ export default class WallCtrl extends Component {
     // Private — Event handlers
     // ────────────────────────────────────────────
 
-    private _onKickSetup(data: any): void {
-        const wallData = data.wallData as IWallData;
+    private _onKickSetup(data: IKickSetupPayload): void {
+        const wallData = data.wallData;
 
         this.node.setPosition(wallData.x, wallData.y, 0);
 

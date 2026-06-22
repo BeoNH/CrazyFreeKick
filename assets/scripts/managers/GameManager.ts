@@ -1,11 +1,11 @@
-import { _decorator, Animation, Component, Node, UITransform, Vec3 } from 'cc';
-import { BONUS_DECREASE, BONUS_START, KEEPER_ACTION_INFO, KeeperAction, NUM_LEVEL, NUM_SAVE, RANGE_HEIGHT, RANGE_WIDTH, TeamIndex, TEAM_KEYS, WALL_WIDTH, WALL_HEIGHT, IPosition, IShotResult, } from '../common/GameConfig';
+import { _decorator, Animation, Component, Node, UITransform } from 'cc';
+import { BONUS_DECREASE, BONUS_START, KEEPER_ACTION_INFO, KeeperAction, NUM_LEVEL, NUM_SAVE, RANGE_HEIGHT, RANGE_WIDTH, TeamIndex, TEAM_KEYS, WALL_WIDTH, WALL_HEIGHT, IPosition, IShotResult } from '../common/GameConfig';
 import { getBallPosition, getLevelInfo, getPlayerPosIndex, getPlayerPosition, getWallData, KEEPER_COL_CONFIG, } from '../common/LevelData';
-import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT, ON_EXIT_GAME, ON_GAME_OVER, ON_GAME_WIN, ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_PLAYER_KICK_FRAME, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_CONFIRMED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
+import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT,ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
 import BroadcastReceiver from '../common/BroadcastReceiver';
-import { Logger } from '../utils/Logger';
 import { popupNextLevel } from '../components/Popup/popupNextLevel';
 import { popupGameOver } from '../components/Popup/popupGameOver';
+import { popupGameWin } from '../components/Popup/popupGameWin';
 import { AudioController } from '../components/AudioController';
 
 const { ccclass, property } = _decorator;
@@ -47,6 +47,9 @@ export default class GameManager extends Component {
     // ── Shot result state ──────────────────────
     private ballPos: IPosition;
 
+    /** Cache node matrix[row][col] */
+    private matrixNodes: (Node | null)[][] = [];
+
     // ── Getters dùng cho Controllers khi cần đọc state ──
 
     public get levelIndex(): number { return this.gLevelIndex; }
@@ -58,6 +61,9 @@ export default class GameManager extends Component {
     public get score(): number { return this.gScore; }
     public get bonus(): number { return this.gBonus; }
     public get lastShotResult(): IShotResult | null { return this.gShotResult; }
+    public get sessionTimeSeconds(): number {
+        return Math.round((Date.now() - this.gTotalTimeStart) / 1000);
+    }
 
     // ────────────────────────────────────────────
     // Lifecycle
@@ -65,6 +71,18 @@ export default class GameManager extends Component {
 
     onLoad(): void {
         GameManager._instance = this;
+        this.cacheMatrixNodes();
+    }
+
+    private cacheMatrixNodes(): void {
+        this.matrixNodes = [];
+        for (let row = 0; row < RANGE_HEIGHT; row++) {
+            const rowNodes: (Node | null)[] = [];
+            for (let col = 0; col < RANGE_WIDTH; col++) {
+                rowNodes.push(this.MATRIX.getChildByPath(`${row}/${col}`));
+            }
+            this.matrixNodes.push(rowNodes);
+        }
     }
 
     update(dt: number): void {
@@ -159,8 +177,8 @@ export default class GameManager extends Component {
      * Tính toán điểm rơi bóng thành công hay không
      */
     public onShotConfirmed(data: { col: number; row: number; }): void {
-        // if (!this.isReadyToKick) return;
-        // this.isBonusRunning = false;
+        if (!this.isReadyToKick) return;
+        this.isBonusRunning = false;
 
         const { col, row } = data;
 
@@ -229,7 +247,11 @@ export default class GameManager extends Component {
      * Tính tọa độ pixel đích của bóng theo col/row.
      */
     private calcKickTarget(col: number, row: number): { x: number; y: number } {
-        const worldPos = this.MATRIX.getChildByPath(`${row}/${col}`).worldPosition.clone();
+        const targetNode = this.matrixNodes[row]?.[col];
+        if (!targetNode) {
+            return { x: 0, y: 0 };
+        }
+        const worldPos = targetNode.worldPosition.clone();
         const nodePos = this.MATRIX.getComponent(UITransform)!.convertToNodeSpaceAR(worldPos);
 
         const x = nodePos.x + (Math.random() * 60 - 30);
@@ -314,8 +336,7 @@ export default class GameManager extends Component {
 
             if (this.gLevelIndex >= NUM_LEVEL) {
                 // WIN
-                const totalTime = Math.round((Date.now() - this.gTotalTimeStart) / 1000);
-                BroadcastReceiver.send(ON_GAME_WIN, { score: this.gScore, time: totalTime });
+                popupGameWin.show();
             } else {
                 BroadcastReceiver.send(ON_LEVEL_COMPLETE, {
                     levelIndex: this.gLevelIndex,
@@ -328,8 +349,6 @@ export default class GameManager extends Component {
 
         if (this.gKicksLeft < 1) {
             // GAME OVER
-            const totalTime = Math.round((Date.now() - this.gTotalTimeStart) / 1000);
-            BroadcastReceiver.send(ON_GAME_OVER, { score: this.gScore, time: totalTime });
             popupGameOver.show();
             return;
         }
@@ -339,6 +358,7 @@ export default class GameManager extends Component {
         this.broadcastKickSetup();
     }
 
+    // button exit game
     private onExitGame(): void {
         this.isReadyToKick = false;
         this.isBonusRunning = false;

@@ -1,4 +1,4 @@
-import { _decorator, Animation, instantiate, Label, Prefab, resources, Toggle } from 'cc';
+import { _decorator, Animation, instantiate, Label, Prefab, Toggle } from 'cc';
 import Popup from '../../common/Popup';
 import AssetLoader from '../../services/AssetLoader';
 import { TEAM_KEYS, TeamIndex } from '../../common/GameConfig';
@@ -57,5 +57,3 @@ export class popupSelectTeam extends Popup {
         this.hide();
     }
 }
-
-

@@ -3,6 +3,10 @@ import AssetLoader from './services/AssetLoader';
 import { NetworkManager, urlParam } from './managers/NetworkManager';
 import { userDATA } from './common/GameConfig';
 import { i18n } from './i18n/LocalizationManager';
+import { Logger } from './utils/Logger';
+
+const TAG = 'LoadingScene';
+
 const { ccclass, property } = _decorator;
 
 @ccclass('LoadingScene')
@@ -15,7 +19,7 @@ export class LoadingScene extends Component {
 
     protected onLoad(): void {
         this.startPreload();
-        i18n.switchLanguage(urlParam("lang") ?? "en");
+        i18n.switchLanguage(urlParam('lang') ?? 'en');
     }
 
     protected async start() {
@@ -32,7 +36,7 @@ export class LoadingScene extends Component {
                 p = Math.max(p, completed / total);
                 this.setProgress(p * 0.9);
             },
-                () => resolve()
+                () => resolve(),
             );
         });
 
@@ -62,11 +66,9 @@ export class LoadingScene extends Component {
     private onComplete(): void {
         this.setProgress(1);
         this.scheduleOnce(() => {
-            director.loadScene(`Game`, (err) => {
-                if (err) console.error('[BootScene] loadScene error:', err);
+            director.loadScene('Game', (err) => {
+                if (err) Logger.error(TAG, 'loadScene error:', err);
             });
         }, 0.1);
     }
 }
-
-

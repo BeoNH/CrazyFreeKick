@@ -5,7 +5,7 @@ import { ON_BALL_KICK, ON_KICK_SETUP } from '../common/GameEvents';
 import { Logger } from '../utils/Logger';
 import GameManager from '../managers/GameManager';
 import { AudioController } from './AudioController';
-import { CANVAS_HEIGHT, IPosition } from '../common/GameConfig';
+import { CANVAS_HEIGHT, IKickSetupPayload, IPosition } from '../common/GameConfig';
 
 // ============================================================
 // BallCtrl — Điều khiển bóng
@@ -129,8 +129,8 @@ export default class BallCtrl extends Component {
     // Private — Event handlers
     // ────────────────────────────────────────────
 
-    private _onBallSetup(data: any): void {
-        const ballPos = data.ballPos as IPosition;
+    private _onBallSetup(data: IKickSetupPayload): void {
+        const ballPos = data.ballPos;
 
         this.opacity.opacity = 255;
         this.node.setPosition(ballPos.x, ballPos.y, 0);

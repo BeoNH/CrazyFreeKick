@@ -26,7 +26,7 @@ export const SHOT_INDICATOR_SPEED_DECREASE = 100;   // giảm mỗi level
 
 // Bonus
 export const BONUS_START = 1000;
-export const BONUS_DECREASE = 1.8;    // giảm mỗi frame khi đang chờ input
+export const BONUS_DECREASE = 2.5;    // giảm mỗi frame khi đang chờ input
 
 export const userDATA = {
     userName: ""
@@ -35,6 +35,16 @@ export const userDATA = {
 // ────────────────────────────────────────────────
 // Interfaces
 // ────────────────────────────────────────────────
+
+export interface IKickSetupPayload {
+    levelIndex: number;
+    kickIndex: number;
+    ballPos: IPosition;
+    playerPos: IPosition;
+    wallData: IWallData;
+    playerAlpha: boolean;
+    teamKey: string;
+}
 
 export interface ILevelInfo {
     goalToScore: number;

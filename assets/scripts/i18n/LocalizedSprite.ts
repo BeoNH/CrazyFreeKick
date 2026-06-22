@@ -27,7 +27,7 @@ export class LocalizedSprite extends Component {
     private _sprite: Sprite | null = null;
 
     private readonly _spriteMap: Record<string, () => SpriteFrame | null> = {
-        'vn': () => this.spriteVN,
+        'vi': () => this.spriteVN,
         'en': () => this.spriteEN,
         'lo': () => this.spriteLO,
         'kr': () => this.spriteKR,

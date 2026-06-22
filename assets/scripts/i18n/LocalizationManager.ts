@@ -39,6 +39,7 @@ const LANGUAGES: Record<string, Record<string, any>> = {
 
 // =============================================
 const DEFAULT_LANG = 'en';
+
 export class LocalizationManager extends EventTarget {
     private static _instance: LocalizationManager;
     private _currentLang: string = DEFAULT_LANG;
@@ -77,17 +78,17 @@ export class LocalizationManager extends EventTarget {
     private _resolve(key: string): string | null {
         const data = LANGUAGES[this._currentLang] ?? LANGUAGES[DEFAULT_LANG];
         const parts = key.split('.');
-        let obj: any = data;
+        let obj: unknown = data;
         for (const p of parts) {
-            if (obj == null || typeof obj !== 'object') return null;
-            obj = obj[p];
+            if (obj === null || typeof obj !== 'object') return null;
+            obj = (obj as Record<string, unknown>)[p];
         }
 
         if (typeof obj !== 'string' && this._currentLang !== DEFAULT_LANG) {
-            let fallback: any = LANGUAGES[DEFAULT_LANG];
+            let fallback: unknown = LANGUAGES[DEFAULT_LANG];
             for (const p of parts) {
-                if (fallback == null || typeof fallback !== 'object') return null;
-                fallback = fallback[p];
+                if (fallback === null || typeof fallback !== 'object') return null;
+                fallback = (fallback as Record<string, unknown>)[p];
             }
             return typeof fallback === 'string' ? fallback : null;
         }

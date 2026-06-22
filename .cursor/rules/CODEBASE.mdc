@@ -1,0 +1,217 @@
+---
+description: Bản đồ codebase CrazyFreeKick — đọc file này trước khi explore toàn repo
+globs: assets/scripts/**/*.ts
+alwaysApply: false
+---
+
+# CODEBASE — CrazyFreeKick
+
+> Mini-game sút phạt (penalty kick). Đọc file này thay vì quét toàn bộ repo.
+
+## Tổng quan
+
+| Thuộc tính | Giá trị |
+|---|---|
+| Engine | Cocos Creator **3.8.7** |
+| Ngôn ngữ | TypeScript strict (26 file `.ts`) |
+| Resolution | 1360×640 |
+| Gameplay | 6 level, grid sút 9×4, 11 đội, thủ môn + tường người |
+| Legacy | `assets/scripts/main.js` (~3500 dòng CreateJS) — chỉ tham chiếu, không sửa |
+| Event bus | `BroadcastReceiver` (không dùng `cc.director`) |
+| Asset load | `AssetLoader` (cache Map) — thay cho `ResourceManager` trong RULES |
+
+**Scenes:** `Loading.scene` → `Game.scene`
+
+**RULES.mdc** dùng `GameScene`, `GameManager`, `AssetLoader`.
+
+---
+
+## Cấu trúc thư mục
+
+```
+assets/scripts/
+├── LoadingScene.ts          # Boot: preload, login API, progress bar
+├── GameScene.ts             # MenuPanel ↔ GamePanel, mở popup chọn đội
+├── managers/
+│   ├── GameManager.ts       # Luật chơi, session state, điều phối kick
+│   └── NetworkManager.ts    # HTTP REST + WebSocket generic
+├── components/
+│   ├── BallCtrl.ts          # Bezier flight, bounce, fadeOut
+│   ├── PlayerCtrl.ts        # Anim idle/shot theo team
+│   ├── GoalKeeperCtrl.ts    # Anim cứu thủ môn
+│   ├── WallCtrl.ts          # Tường người (max 3)
+│   ├── ShotIndicatorCtrl.ts # 2 bước tap chọn col/row
+│   ├── HUDCtrl.ts           # Score, bonus, kicks, result label
+│   ├── AudioController.ts   # Singleton SFX/BGM
+│   └── Popup/               # popupSelectTeam, popupNextLevel, popupGameOver, popupGameWin
+├── common/
+│   ├── GameConfig.ts        # Hằng số, enum, interfaces
+│   ├── LevelData.ts         # Grid vị trí level/kick, keeper config
+│   ├── GameEvents.ts        # Event name UPPER_CASE
+│   ├── GameEventPayloads.ts # Typed payload cho BroadcastReceiver
+│   ├── BroadcastReceiver.ts # Pub/sub event
+│   ├── Popup.ts             # Base popup show/hide tween
+│   └── NumberScrolling.ts   # Tween số trên Label
+├── services/AssetLoader.ts  # Load remote/resources + cache
+├── utils/Logger.ts          # Wrapper log [tag]
+└── i18n/                    # LocalizationManager, LocalizedLabel, LocalizedSprite
+```
+
+---
+
+## Luồng scene
+
+```
+LoadingScene
+  → preload Game scene + 4 popup prefabs
+  → POST /login (token từ URL)
+  → loadScene('Game')
+
+GameScene
+  → MenuPanel (splash tween)
+  → popupSelectTeam → GameManager.startGame(teamKey)
+  → GamePanel active
+```
+
+---
+
+## Luồng một lượt sút (critical path)
+
+1. `GameManager.broadcastKickSetup()` → `ON_KICK_SETUP` → Ball/Player/Wall reposition
+2. `GameManager.beginKick()` → `ON_KICK_READY` → `ShotIndicatorCtrl` step 0 (horizontal)
+3. Tap → step 1 (vertical) → tap → `GameManager.onShotConfirmed({col, row})`
+4. GameManager tính `gShotResult` → `ON_SHOT_START`
+5. `PlayerCtrl.playShot()` → anim frame event `onKickFrame()` → `GameManager.onPlayerKickFrame()`
+6. `ON_BALL_KICK` + `ON_KEEPER_JUMP` + `ON_WALL_JUMP` (nếu có tường)
+7. `BallCtrl` bay xong → `GameManager.onBallLanded()` → `ON_GOAL`/`ON_SAVED`/`ON_OUT`/`ON_WALL_HIT`
+8. `HUDCtrl._onResultShow()` tween → `GameManager.controlIfCanContinue()`
+9. Win → `popupGameWin` | Over → `popupGameOver` | Next level → `popupNextLevel`
+
+---
+
+## Event map (BroadcastReceiver)
+
+Payload types định nghĩa trong `GameEventPayloads.ts`.
+
+| Event | Payload | Emitter → Listener |
+|---|---|---|
+| `ON_KICK_SETUP` | `IKickSetupPayload` | GameManager → Ball/Player/Wall |
+| `ON_KICK_READY` | `number` (levelIndex) | GameManager → ShotIndicatorCtrl |
+| `ON_SHOT_START` | `null` | GameManager → PlayerCtrl |
+| `ON_BALL_KICK` | `{ targetPos, hitKeeper, hitWall }` | GameManager → BallCtrl |
+| `ON_KEEPER_JUMP` | `IKeeperActionInfo` | GameManager → GoalKeeperCtrl |
+| `ON_WALL_JUMP` | `null` | GameManager → WallCtrl |
+| `ON_GOAL` | `{ score, bonus }` | GameManager → HUDCtrl |
+| `ON_SAVED` / `ON_OUT` / `ON_WALL_HIT` | `null` | GameManager → HUDCtrl |
+| `ON_SCORE_CHANGED` | `{ score }` | GameManager → HUDCtrl |
+| `ON_BONUS_CHANGED` | `{ bonus }` | GameManager → HUDCtrl |
+| `ON_KICKS_CHANGED` | `{ kicksLeft }` | GameManager → HUDCtrl |
+| `ON_GOALS_CHANGED` | `{ scored, required }` | GameManager → HUDCtrl |
+| `ON_LEVEL_COMPLETE` | `{ levelIndex, goalsScored }` | GameManager (broadcast) |
+| `ON_GAME_OVER` | `{ score, time }` | GameManager (broadcast) |
+| `ON_GAME_WIN` | `{ score, time }` | GameManager (broadcast) |
+| `ON_CROWD_EXULT` | `null` | GameManager (broadcast) |
+| `ON_EXIT_GAME` | `null` | (external) → GameManager |
+
+**Events khai báo nhưng chưa dùng:** `ON_BOOT_COMPLETE`, `ON_GOTO_SELECT_TEAM`, `ON_TEAM_SELECTED`, `ON_SHOT_CONFIRMED`, `ON_PLAYER_KICK_FRAME`
+
+---
+
+## GameManager — state chính
+
+| Field | Ý nghĩa |
+|---|---|
+| `gScore`, `gBonus` | Điểm và hệ số thưởng (bonus giảm mỗi frame khi chờ) |
+| `gGoalsScored`, `gGoalsRequired` | Bàn ghi / bàn cần ghi trong level |
+| `gKicksLeft` | Lượt sút còn lại |
+| `gLevelIndex`, `gKickIndex` | Level hiện tại (0–5), lượt sút (0–4) |
+| `gTeamKey` | Team string (`argentina`, `brazil`, …) |
+| `gShotResult` | Kết quả cú sút vừa tính (`IShotResult`) |
+| `isReadyToKick` | Guard chống double-tap |
+
+**Public API:** `startGame`, `startNextLevel`, `beginKick`, `onShotConfirmed`, `onPlayerKickFrame`, `onBallLanded`, `controlIfCanContinue`
+
+---
+
+## Config quan trọng
+
+**GameConfig.ts**
+- `RANGE_WIDTH=9`, `RANGE_HEIGHT=4`, `NUM_LEVEL=6`
+- `BONUS_START=1000`, `BONUS_DECREASE=1.8`
+- `KeeperAction` enum (8 hướng cứu + OUT)
+- `TeamIndex` / `TEAM_KEYS` (11 đội)
+- `KEEPER_ACTION_INFO`, `userDATA`
+
+**LevelData.ts**
+- `LEVEL_INFO_LIST` — goalToScore + kickLeft mỗi level
+- `BALL_POS_GRID`, `PLAYER_POS_GRID`, `WALL_POS_GRID`
+- `KEEPER_COL_CONFIG` — catchPercent + rowActions theo col 0–8
+
+---
+
+## API (NetworkManager)
+
+| Endpoint | Gọi từ | Body |
+|---|---|---|
+| `POST /login` | LoadingScene | `{ token }` |
+| `POST /saveScore` | popupGameOver, popupGameWin | `{ username, score, time }` |
+
+Base URL: `https://apiminigame-kh.gamebatta.com/api-minigame` (DEFAULT_CONFIG)
+
+Helper: `PopupHelper.saveScore(score, time)` — gom logic save chung.
+
+---
+
+## Singleton pattern
+
+| Class | Cách dùng |
+|---|---|
+| `GameManager.instance` | Component trên scene, gán trong `onLoad` |
+| `GameScene.instance` | Component trên scene |
+| `AudioController.instance` | Component trên scene |
+| `NetworkManager.instance` | Pure TS singleton |
+| `i18n` | `LocalizationManager.instance` |
+
+---
+
+## i18n
+
+- Ngôn ngữ: `vi`, `en`, `lo`, `my`, `kr`
+- URL param: `?lang=en&token=...`
+- `LocalizedLabel` — key → Label/RichText
+- `LocalizedSprite` — map sprite theo `currentLang` (`vi`/`en`/…)
+
+---
+
+## Quy ước sửa code
+
+- Log: `Logger.info/warn/error('[Tag]', msg)` — không `console.log`
+- Event: thêm vào `GameEvents.ts` + payload vào `GameEventPayloads.ts`
+- Popup: dùng `PopupHelper.show(prefabPath, ComponentClass)`
+- API: qua `NetworkManager` hoặc `PopupHelper.saveScore`
+- Tham chiếu thêm: `RULES.mdc`, `API_SPEC.mdc`
+
+---
+
+## Danh sách tối ưu (tham chiếu)
+
+### P0 — đã xử lý
+- GameManager: popupGameWin, ON_EXIT_GAME, cache matrix, guard isReadyToKick
+- NetworkManager: Logger, typed httpPost, error handling
+- BroadcastReceiver: typed payloads
+
+### P1 — đã xử lý
+- PopupHelper: gom show() + saveScore
+- LoadingScene: Logger
+
+### P2 — đã xử lý
+- IKickSetupPayload cho BallCtrl/WallCtrl
+- AssetLoader: Logger + typed cache
+- LocalizationManager: Logger + TranslationKey type
+- LocalizedSprite: fix `vi` mapping
+- PlayerCtrl: extract loadAndPlayClip
+
+### P3 — polish (chưa bắt buộc)
+- HUDCtrl coupling với controlIfCanContinue
+- ShotIndicatorCtrl doc vs direct call GameManager
+- AudioController: keeperSave/applause chưa gọi

@@ -1,12 +1,6 @@
 // ─────────────────────────────────────────────────────────────────────────────
 //  NetworkManager.ts
 //  Client WebSocket + HTTP REST hợp nhất
-//  ✔ Không phụ thuộc framework (không cần Cocos Creator / cc.*)
-//  ✔ Generic TypeScript đầy đủ
-//  ✔ Tự động kết nối lại với exponential back-off
-//  ✔ Các pattern: Request/Response, Notify, lắng nghe server-push
-//  ✔ Đo Ping / độ trễ mạng
-//  ✔ Timeout riêng từng request + tự dọn dẹp bộ nhớ
 // ─────────────────────────────────────────────────────────────────────────────
 
 
@@ -437,27 +431,32 @@ export class NetworkManager {
      */
     async httpRequest<T>(path: string, init: RequestInit = {}): Promise<T> {
         const url = `${this.cfg.httpBaseUrl}${path}`;
+        const method = init.method ?? 'GET';
 
-        if (init.body) {
-            console.log(`[NetworkManager] HTTP ${init.method ?? "GET"} ${url}`, JSON.parse(init.body as string));
+        let parsedBody: Record<string, unknown> | undefined;
+        if (init.body && typeof init.body === 'string') {
+            parsedBody = JSON.parse(init.body) as Record<string, unknown>;
+            console.log(`[NetworkManager] HTTP ${method} ${url}`, parsedBody);
         } else {
-            console.log(`[NetworkManager] HTTP ${init.method ?? "GET"} ${url}`);
+            console.log(`[NetworkManager] HTTP ${method} ${url}`);
         }
 
         try {
             const response = await fetch(url, {
                 headers: {
-                    "Content-Type": "application/json",
-                    "Authorization": "Bearer " + this.cfg.accessToken,
-                    ...(init.headers ?? {})
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + this.cfg.accessToken,
+                    ...(init.headers ?? {}),
                 },
                 ...init,
-                body: init.body && JSON.stringify({
-                    ...JSON.parse(init.body as string),
-                    ...PARAMS,
-                    source: urlParam("url_api"),
-                    game_name: "crazy-free-kick"
-                })
+                body: parsedBody
+                    ? JSON.stringify({
+                        ...parsedBody,
+                        ...PARAMS,
+                        source: urlParam('url_api'),
+                        game_name: 'crazy-free-kick',
+                    })
+                    : init.body,
             });
             if (!response.ok) {
                 console.warn(`[NetworkManager] HTTP ${response.status} ${response.statusText} — ${url}`);
@@ -475,16 +474,16 @@ export class NetworkManager {
     }
 
     /** Tiện ích: HTTP GET */
-    httpGet<T>(path: string): Promise<T> {
+    httpGet<T>(path: string): Promise<T | null> {
         return this.httpRequest<T>(path, {
-            method: "GET"
+            method: 'GET',
         });
     }
 
     /** Tiện ích: HTTP POST với body JSON */
-    httpPost<TRes = any, TReq = unknown>(path: string, body: TReq): Promise<TRes> {
+    httpPost<TRes = any, TReq = any>(path: string, body: TReq): Promise<TRes | null> {
         return this.httpRequest<TRes>(path, {
-            method: "POST",
+            method: 'POST',
             body: JSON.stringify(body),
         });
     }
@@ -495,9 +494,9 @@ export function urlParam(name: string): string | null {
     return results !== null ? (results[1] || '') : null;
 }
 
-const PARAMS = (() => {
+const PARAMS: Record<string, string> = (() => {
     const params = new URLSearchParams(window.location.search);
-    const obj = {};
+    const obj: Record<string, string> = {};
     for (const [key, value] of params) {
         obj[key] = value;
     }

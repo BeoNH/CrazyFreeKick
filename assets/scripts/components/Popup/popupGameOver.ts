@@ -1,5 +1,5 @@
 import { NumberScrolling } from './../../common/NumberScrolling';
-import { _decorator, Component, instantiate, Label, Node, Prefab } from 'cc';
+import { _decorator, instantiate, Prefab } from 'cc';
 import Popup from '../../common/Popup';
 import AssetLoader from '../../services/AssetLoader';
 import GameManager from '../../managers/GameManager';
@@ -35,7 +35,7 @@ export class popupGameOver extends Popup {
         NetworkManager.instance.httpPost("/saveScore", {
             "username": userDATA?.userName,
             "score": GameManager.instance.score,
-            "time": 0
+            "time": GameManager.instance.sessionTimeSeconds
         });
     }
 
@@ -44,5 +44,3 @@ export class popupGameOver extends Popup {
         this.hide();
     }
 }
-
-

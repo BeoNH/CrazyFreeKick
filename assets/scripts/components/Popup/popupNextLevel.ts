@@ -29,11 +29,9 @@ export class popupNextLevel extends Popup {
         }  
     }
 
-    onNextLevel(){
+    onNextLevel() {
         AudioController.instance.click();
         GameManager.instance.startNextLevel();
         this.hide();
     }
 }
-
-

@@ -91,71 +91,71 @@
     ],
     "_values": [
       {
-        "__uuid__": "3c87fa4d-ab9c-49c0-b6c5-6c2de9650d86@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@753cb",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "23256eb3-e5f3-4709-9fcb-00d7722743bd@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@7bfab",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "41bf43b2-8afa-4668-bb19-a93ee2731b71@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@67cc1",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "50ac5cb9-3c91-4c75-b0fd-edcce61c5aba@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@ed9d1",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "33bbc24d-52b9-4c66-b4a5-da0b32da2a13@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@27a4e",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "0aa154f8-ac2d-4aba-9a03-7151c0b5d378@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@3758c",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "81b24715-bdd8-4167-9731-2ae9a436b79c@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@b44af",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "8cbb4929-c290-4b83-b1c3-1e02c328fc0d@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@9f3f1",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "95d004d0-da04-46d7-8b47-0fd1398b21f5@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@2e8d4",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "db14d740-2312-4d9c-89a8-49a9d3a5ac13@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@25c1c",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "eef64b80-4e5d-42fb-9b21-068b60ffb6f9@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@e7100",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "c6a5a9ec-bbd0-40ab-be27-8ae6b08af02a@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@166cd",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "1bf1f737-fb81-48a9-aa64-a4e594408164@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@ef929",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "1d41d89d-68cb-4622-88c4-514d5ca24d2c@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@b25ed",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "351f671a-78d0-4ded-871c-a5b1efb5e87a@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@6c535",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "94e6b78f-2b28-48e6-a7ac-fee8f38649df@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@3bd4f",
         "__expectedType__": "cc.SpriteFrame"
       },
       {
-        "__uuid__": "5ac9aac6-47e7-40aa-8240-fdcd219959fc@f9941",
+        "__uuid__": "56501830-e55a-41c0-b0a9-ac8d91f6e376@3847c",
         "__expectedType__": "cc.SpriteFrame"
       }
     ]
@@ -215,9 +215,7 @@
         "leftTangent": 0,
         "leftTangentWeight": 1,
         "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "__editorExtras__": null
       },
       {
         "__type__": "cc.RealKeyframeValue",
@@ -229,9 +227,7 @@
         "leftTangent": 0,
         "leftTangentWeight": 1,
         "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "__editorExtras__": null
       },
       {
         "__type__": "cc.RealKeyframeValue",
@@ -243,9 +239,7 @@
         "leftTangent": 0,
         "leftTangentWeight": 1,
         "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "__editorExtras__": null
       }
     ],
     "preExtrapolation": 1,
@@ -275,9 +269,7 @@
         "leftTangent": 0,
         "leftTangentWeight": 1,
         "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "__editorExtras__": null
       },
       {
         "__type__": "cc.RealKeyframeValue",
@@ -289,9 +281,7 @@
         "leftTangent": 0,
         "leftTangentWeight": 1,
         "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "__editorExtras__": null
       },
       {
         "__type__": "cc.RealKeyframeValue",
@@ -303,9 +293,7 @@
         "leftTangent": 0,
         "leftTangentWeight": 1,
         "easingMethod": 0,
-        "__editorExtras__": {
-          "tangentMode": 0
-        }
+        "__editorExtras__": null
       }
     ],
     "preExtrapolation": 1,

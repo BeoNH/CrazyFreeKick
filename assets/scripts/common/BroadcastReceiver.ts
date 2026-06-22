@@ -36,7 +36,7 @@ export default class BroadcastReceiver {
     }
     
 
-    public static send(action: string, data: any = null) {
+    public static send<T>(action: string, data: T | null = null) {
         for (var i = 0; i < this.listeners.length; i++) {
             let listener = this.listeners[i];
             if (listener.target && listener.target instanceof Object && listener.target.node) {

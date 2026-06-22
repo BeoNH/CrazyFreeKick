@@ -2,7 +2,7 @@ import { _decorator, Animation, AnimationClip, Component, UIOpacity } from 'cc';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { ON_KICK_SETUP, ON_SHOT_START } from '../common/GameEvents';
 import { Logger } from '../utils/Logger';
-import { TEAM_KEYS, TeamIndex } from '../common/GameConfig';
+import { IKickSetupPayload, TEAM_KEYS, TeamIndex } from '../common/GameConfig';
 import GameManager from '../managers/GameManager';
 import AssetLoader from '../services/AssetLoader';
 
@@ -13,15 +13,9 @@ import AssetLoader from '../services/AssetLoader';
 //   - showShot: animation shot, frame event → trigger kickBall
 //   - changeAlpha: alpha 0.5 khi player ở vị trí giữa (posIndex === 1)
 // ============================================================
-const { ccclass, property } = _decorator;
+const { ccclass } = _decorator;
 
 const TAG = 'PlayerCtrl';
-
-interface IKickSetupData {
-    playerPos: { x: number; y: number };
-    playerAlpha: boolean;
-    teamKey: string;
-}
 
 @ccclass('PlayerCtrl')
 export default class PlayerCtrl extends Component {
@@ -30,10 +24,6 @@ export default class PlayerCtrl extends Component {
     private anim: Animation = null!;
     private uiOpacity: UIOpacity = null!;
     private currentTeamKey: string = TEAM_KEYS[TeamIndex.ARGENTINA];
-
-    // ────────────────────────────────────────────
-    // Lifecycle
-    // ────────────────────────────────────────────
 
     onLoad(): void {
         BroadcastReceiver.register(ON_KICK_SETUP, this._onKickSetup.bind(this), this);
@@ -47,11 +37,7 @@ export default class PlayerCtrl extends Component {
         BroadcastReceiver.unRegisterByTarget(this);
     }
 
-    // ────────────────────────────────────────────
-    // Private — Event handlers
-    // ────────────────────────────────────────────
-
-    private _onKickSetup(data: IKickSetupData): void {
+    private _onKickSetup(data: IKickSetupPayload): void {
         this.currentTeamKey = data.teamKey;
 
         this.node.setPosition(data.playerPos.x, data.playerPos.y, 0);
