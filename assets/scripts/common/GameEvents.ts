@@ -98,18 +98,8 @@ export const ON_GOALS_CHANGED = 'ON_GOALS_CHANGED';
 /** Bắt đầu lượt sút mới, indicator sẵn sàng — không truyền data */
 export const ON_KICK_READY = 'ON_KICK_READY';
 
-/** Hoàn thành một level → show NextLevelPopup — truyền { levelIndex, goalsScored } */
-export const ON_LEVEL_COMPLETE = 'ON_LEVEL_COMPLETE';
-
 /** Hết lượt mà không đủ bàn → Game Over — truyền { score } */
 export const ON_GAME_OVER = 'ON_GAME_OVER';
 
 /** Qua hết 6 level → Win — truyền { score } */
 export const ON_GAME_WIN = 'ON_GAME_WIN';
-
-// ────────────────────────────────────────────────
-// Crowd (GameManager → CrowdCtrl)
-// ────────────────────────────────────────────────
-
-/** Kích hoạt animation khán giả ăn mừng sau khi ghi bàn */
-export const ON_CROWD_EXULT = 'ON_CROWD_EXULT';

@@ -27,8 +27,8 @@
         "progress": 1,
         "state": "success",
         "stage": "build",
-        "message": "6-10-2026 14:51:31 build success in 25 s!",
-        "detailMessage": "// ---- build task cocos-service：onAfterCompressSettings ----\r",
+        "message": "6-25-2026 09:42:20 build success in 1 min 52 s!",
+        "detailMessage": "// ---- build task Sort build template ----\r",
         "options": {
           "name": "CrazyFreeKick",
           "server": "",
@@ -93,7 +93,7 @@
           "__version__": "1.3.9",
           "logDest": "project://temp/builder/log/web-mobile6-5-2026 15-47.log"
         },
-        "time": "6-10-2026 14:51:05",
+        "time": "6-25-2026 09:40:27",
         "dirty": false
       }
     }

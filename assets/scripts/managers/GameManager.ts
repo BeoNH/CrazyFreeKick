@@ -1,7 +1,7 @@
 import { _decorator, Animation, Component, Node, UITransform } from 'cc';
 import { BONUS_DECREASE, BONUS_START, KEEPER_ACTION_INFO, KeeperAction, NUM_LEVEL, NUM_SAVE, RANGE_HEIGHT, RANGE_WIDTH, TeamIndex, TEAM_KEYS, WALL_WIDTH, WALL_HEIGHT, IPosition, IShotResult } from '../common/GameConfig';
 import { getBallPosition, getLevelInfo, getPlayerPosIndex, getPlayerPosition, getWallData, KEEPER_COL_CONFIG, } from '../common/LevelData';
-import { ON_BALL_KICK, ON_BONUS_CHANGED, ON_CROWD_EXULT,ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_LEVEL_COMPLETE, ON_OUT, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
+import { ON_BALL_KICK, ON_BONUS_CHANGED,ON_GOAL, ON_GOALS_CHANGED, ON_KEEPER_JUMP, ON_KICK_READY, ON_KICK_SETUP, ON_KICKS_CHANGED, ON_OUT, ON_SAVED, ON_SCORE_CHANGED, ON_SHOT_START, ON_WALL_HIT, ON_WALL_JUMP, } from '../common/GameEvents';
 import BroadcastReceiver from '../common/BroadcastReceiver';
 import { popupNextLevel } from '../components/Popup/popupNextLevel';
 import { popupGameOver } from '../components/Popup/popupGameOver';
@@ -315,7 +315,6 @@ export default class GameManager extends Component {
             BroadcastReceiver.send(ON_SCORE_CHANGED, { score: this.gScore });
             BroadcastReceiver.send(ON_GOALS_CHANGED, { scored: this.gGoalsScored, required: this.gGoalsRequired });
             this.crowdAnim.play();
-            BroadcastReceiver.send(ON_CROWD_EXULT, null);
             AudioController.instance.goal();
         }
 
@@ -338,10 +337,6 @@ export default class GameManager extends Component {
                 // WIN
                 popupGameWin.show();
             } else {
-                BroadcastReceiver.send(ON_LEVEL_COMPLETE, {
-                    levelIndex: this.gLevelIndex,
-                    goalsScored: this.gGoalsScored,
-                });
                 popupNextLevel.show();
             }
             return;
