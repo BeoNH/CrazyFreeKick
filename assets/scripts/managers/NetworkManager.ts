@@ -51,6 +51,24 @@ export interface NetworkConfig {
     accessToken?: string;
 }
 
+
+const PARAMS = ((): Record<string, string> => {
+    const params = new URLSearchParams(window.location.search);
+    const result: Record<string, string> = {};
+
+    for (const [key, value] of params) {
+        result[key] = value;
+    }
+
+    return result;
+})();
+
+/** Lấy query param từ URL trang (ví dụ token SSO). */
+export function urlParam(key: string): string | undefined {
+    return PARAMS[key];
+}
+
+
 const DEFAULT_CONFIG: Required<NetworkConfig> = {
     wsHost: "localhost",
     wsPort: 3000,
@@ -59,7 +77,7 @@ const DEFAULT_CONFIG: Required<NetworkConfig> = {
     reconnectBaseDelay: 1000,
     maxReconnectDelay: 30_000,
     pingIntervalMs: 3000,
-    httpBaseUrl: `https://apiminigame-kh.gamebatta.com/api-minigame`,
+    httpBaseUrl: `https://${PARAMS.url_api}/game-service/api-minigame`,
     accessToken: "",
 };
 
@@ -488,20 +506,6 @@ export class NetworkManager {
         });
     }
 }
-
-export function urlParam(name: string): string | null {
-    const results = new RegExp('[?&]' + name + '=([^&#]*)').exec(window.location.search);
-    return results !== null ? (results[1] || '') : null;
-}
-
-const PARAMS: Record<string, string> = (() => {
-    const params = new URLSearchParams(window.location.search);
-    const obj: Record<string, string> = {};
-    for (const [key, value] of params) {
-        obj[key] = value;
-    }
-    return obj;
-})();
 
 // ── Khai báo kiểu cho msgpack (được load từ bên ngoài) ────────────────────────
 declare const msgpack: {
